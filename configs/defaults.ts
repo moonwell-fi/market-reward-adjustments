@@ -3,8 +3,8 @@ import {Contracts} from "@moonwell-fi/moonwell.js";
 import {omit} from "lodash";
 
 const defaultConfig: DefaultConfig = {
-    // Days to use as 1 month, 365 days for 1 year is hard-coded
-    daysPerRewardCycle: 31,
+    // Days to use as 1 reward cycle
+    daysPerRewardCycle: 28,
 
     // Network specific configurations (RPC, gov token name, etc)
     [NETWORK.MOONRIVER]: {
@@ -19,15 +19,15 @@ const defaultConfig: DefaultConfig = {
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
         defaultSplits: {
-            [COMPONENT.ALL_MARKETS]: 0.30,
-            [COMPONENT.SAFETY_MODULE]: 0.42,
-            [COMPONENT.DEX_REWARDER]: 0.28,
+            [COMPONENT.ALL_MARKETS]: 0.28,
+            [COMPONENT.SAFETY_MODULE]: 0.23,
+            [COMPONENT.DEX_REWARDER]: 0.49,
         },
 
         // The default grant sizes, denominated in underlying tokens as whole numbers (no mantissa)
         defaultGrantAmounts: {
-            [REWARD_TYPE.GOV_TOKEN]: 123_456,    // MFAM
-            [REWARD_TYPE.NATIVE_TOKEN]: 789_012, // MOVR
+            [REWARD_TYPE.GOV_TOKEN]: 28_000_000,    // MFAM
+            [REWARD_TYPE.NATIVE_TOKEN]: 9_926, // MOVR
         },
 
         toJSON(){

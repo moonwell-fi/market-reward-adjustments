@@ -1,10 +1,7 @@
 # Safety Module
 At the time this proposal was generated there was `<%= formatNumber(safetyModuleInfo.totalStaked, 0) %> <%= config.govTokenName %>` staked in the Safety Module, at a valuation of `$<%= formatNumber(safetyModuleInfo.stakedTVL) %>` (based on a price of `$<%= formatNumber(safetyModuleInfo.govTokenPrice, 4)  %>` pulled from `<%= config.dexName %>`).
 
-This proposal, if executed, would make the following changes to the Safety Module:
+This proposal, if executed, would make the following changes to the Safety Module to emit `<%= formatNumber(smTokensToEmit, 0) %> <%= config.govTokenName %>` over the next <%= config.daysPerRewardCycle %>:
 - Reward speed:
-    - Current (estimated APR = `~<%= formatNumber(safetyModuleInfo.emissions.emissionAPR, 2) %>%`): <%= currentRewardSpeeds() %>
-    - Proposed:
-        - TODO
-        - TODO
-        - TODO
+    - Current (estimated APR = `~<%= formatNumber(safetyModuleInfo.emissions.emissionAPR, 2) %>%`): <%= currentGovRewardSpeeds(config, new BigNumber(safetyModuleInfo.emissions.emissionsPerSecond)) %>
+    - Proposed (estimated APR = `~<%= formatNumber(newSMEmissionAPR, 2) %>%`): <%= proposedGovRewardSpeeds(config, newSMEmissionsPerSecond) %>

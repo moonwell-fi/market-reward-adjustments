@@ -134,7 +134,7 @@ export async function getEmissionSplits(config: any, currentNetwork: NETWORK){
         },
     ], globalPromptOptions)
 
-    return {govTokens: promptResponse.govTokenAmount, nativeTokens: promptResponse.nativeTokenAmount}
+    return {[REWARD_TYPE.GOV_TOKEN]: promptResponse.govTokenAmount, [REWARD_TYPE.NATIVE_TOKEN]: promptResponse.nativeTokenAmount}
 }
 
 export async function gatherInfoFromUser(){
@@ -165,7 +165,13 @@ export async function gatherInfoFromUser(){
 
     console.log()
 
-    const tokenSplits = await getEmissionSplits(config, network)
+    const emissionAmounts = await getEmissionSplits(config, network)
 
-    return {name, network, mipNumber, componentSplits, tokenSplits}
+    return {
+        name,
+        network,
+        mipNumber,
+        componentSplits,
+        emissionAmounts
+    }
 }

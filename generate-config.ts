@@ -4,8 +4,10 @@ import defaultConfig from "./configs/defaults";
 import {ethers} from 'ethers'
 import {BigNumber} from 'bignumber.js'
 import * as fs from "fs";
-import prompts = require("prompts");
 import {formatNumber} from "./src/lib";
+import prompts = require("prompts");
+import {gatherInfoFromUser} from "./src/prompts";
+import {omit} from "lodash";
 
 function printIntro(){
     console.log("Welcome to the moonwell market adjuster!")
@@ -14,22 +16,20 @@ function printIntro(){
     console.log()
 }
 
-
-
 async function fetchSafetyModuleInfo(
     config: NetworkSpecificConfig,
     provider: ethers.providers.JsonRpcProvider,
     blockTag: ethers.CallOverrides,
-    network: NETWORK,
+    govTokenPrice: BigNumber
 ){
     const safetyModuleContract = config.contracts.SAFETY_MODULE.contract.connect(provider)
     const totalSupplyEthersBignum = await safetyModuleContract.totalSupply(blockTag)
-    const totalStaked = new BigNumber(totalSupplyEthersBignum.toString())
+    const totalStaked = new BigNumber(totalSupplyEthersBignum.toString()).shiftedBy(-18)
     const assetConfig = await safetyModuleContract.assets(safetyModuleContract.address, blockTag)
 
     // Get the emission info
-    const emissionsPerSecond = new BigNumber(assetConfig.emissionPerSecond.toString())
-    const lastUpdateTimestamp = new BigNumber(assetConfig.lastUpdateTimestamp.toString())
+    const emissionsPerSecond = new BigNumber(assetConfig.emissionPerSecond.toString()).shiftedBy(-18)
+    const lastUpdateTimestamp = new BigNumber(assetConfig.lastUpdateTimestamp.toString()).toNumber()
 
     // Calculate emissions APR
     const emissionsPerYear = emissionsPerSecond.times(86400).times(365)
@@ -39,6 +39,15 @@ async function fetchSafetyModuleInfo(
         emissionsPerSecond, lastUpdateTimestamp, emissionAPR
     }
 
+    return {
+        totalStaked: totalStaked,
+        stakedTVL: totalStaked.times(govTokenPrice),
+        govTokenPrice,
+        emissions
+    }
+}
+
+async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethers.providers.JsonRpcProvider, blockTag: ethers.CallOverrides, network: NETWORK) {
     const oracleContract = config.contracts.ORACLE.contract.connect(provider)
     const oraclePrice = await oracleContract.getUnderlyingPrice(config.nativeAsset.mTokenAddress, blockTag)
     const nativePrice = new BigNumber(oraclePrice.toString()).div(1e18)
@@ -46,48 +55,97 @@ async function fetchSafetyModuleInfo(
     // console.log("Price:", nativePrice.toFixed())
 
     const pairContract = new ethers.Contract(config.govTokenUniPoolAddress, require('./abi/UniPair.json'), provider);
-
-    let govTokenPrice
+    let nativeAssetTotal, govTokenTotal
     // Stellaswap and Solarbeam have differnet configs and put the "core" asset in different orders :(
     if (network === NETWORK.MOONBEAM){
         let [WELLReserve, GLMRReserve, _blockTimestampLast] = await pairContract.getReserves()
-        GLMRReserve = new BigNumber(GLMRReserve.toString()).div(1e18)
-        WELLReserve = new BigNumber(WELLReserve.toString()).div(1e18)
+        nativeAssetTotal = new BigNumber(GLMRReserve.toString()).div(1e18)
+        govTokenTotal = new BigNumber(WELLReserve.toString()).div(1e18)
 
-        govTokenPrice = GLMRReserve.div(WELLReserve).times(nativePrice)
         // console.log({WELLPrice: govTokenPrice.toFixed()})
     } else {
         let [MOVRReserve, MFAMReserve, _blockTimestampLast] = await pairContract.getReserves()
-        MOVRReserve = new BigNumber(MOVRReserve.toString()).div(1e18)
-        MFAMReserve = new BigNumber(MFAMReserve.toString()).div(1e18)
+        nativeAssetTotal = new BigNumber(MOVRReserve.toString()).div(1e18)
+        govTokenTotal = new BigNumber(MFAMReserve.toString()).div(1e18)
+    }
+    const govTokenPrice = nativeAssetTotal.div(govTokenTotal).times(nativePrice)
 
-        govTokenPrice = MOVRReserve.div(MFAMReserve).times(nativePrice)
+    let poolID, poolInfo, currentPoolRewardInfo, nextFreeSlot, currentConfig
+    if (network === NETWORK.MOONBEAM){
+        poolID = 15
+        poolInfo = await config.contracts.DEX_REWARDER.contract.connect(provider).poolInfo(poolID)
+        nextFreeSlot = poolInfo.allocPoint.toNumber()
+        currentConfig = await config.contracts.DEX_REWARDER.contract.connect(provider).poolRewardInfo(poolID, poolInfo.allocPoint.sub(1))
 
-        // console.log({MFAMPrice: govTokenPrice.toFixed()})
+    } else if (network === NETWORK.MOONRIVER){
+        poolID = 11
+        poolInfo = await config.contracts.DEX_REWARDER.contract.connect(provider).poolInfo(poolID)
+
+        // Go search for the next reward slot
+        nextFreeSlot = 20
+        for (;;){
+            try {
+                currentConfig = await config.contracts.DEX_REWARDER.contract.connect(provider).poolRewardInfo(poolID, nextFreeSlot + 1)
+                nextFreeSlot += 1
+            } catch (e){
+                // Increment one more time to the next empty slot
+                nextFreeSlot += 1
+                break
+            }
+        }
+
+    } else {
+        throw new Error("Unknown network " + network)
     }
 
-    const staked = new BigNumber(totalStaked.toString()).div(1e18)
+    currentPoolRewardInfo = {
+        startTimestamp: currentConfig.startTimestamp.toNumber(),
+        endTimestamp: currentConfig.endTimestamp.toNumber(),
+        rewardPerSec: new BigNumber(currentConfig.rewardPerSec.toString()).shiftedBy(-18),
+    }
+
+    const poolTVL = nativePrice.times(nativeAssetTotal).plus(
+        govTokenPrice.times(govTokenTotal)
+    )
+
+    const emissionsPerSec = new BigNumber(currentPoolRewardInfo.rewardPerSec)
+    const emissionsPerDay = emissionsPerSec.times(86400)
+    const emissionsPerYear = emissionsPerDay.times(365)
+
+    const currentEmissionGrowth = emissionsPerYear.times(govTokenPrice)
+    const currentPoolAPR = poolTVL.plus(currentEmissionGrowth).div(poolTVL).minus(1).times(100)
 
     return {
-        totalStaked: staked,
-        stakedTVL: staked.times(govTokenPrice),
+        govTokenTotal,
+        nativeAssetTotal,
         govTokenPrice,
-        emissions
+        nextFreeSlot,
+        emissionsPerYear,
+        poolTVL,
+        currentPoolAPR,
+        currentPoolRewardInfo
     }
 }
 
 async function generateConfig(){
     printIntro()
 
-    // const responses = await gatherInfoFromUser()
+    const responses = await gatherInfoFromUser()
+    // const responses = {
+    //     name: 'ok',
+    //     network: 'Moonbeam',
+    //     mipNumber: 4,
+    //     componentSplits: defaultConfig[NETWORK.MOONBEAM].defaultSplits,
+    //     emissionAmounts: defaultConfig[NETWORK.MOONBEAM].defaultGrantAmounts
+    // }
+    // const responses = {
+    //     name: 'ok',
+    //     network: 'Moonriver',
+    //     mipNumber: 5,
+    //     componentSplits: defaultConfig[NETWORK.MOONRIVER].defaultSplits,
+    //     emissionAmounts: defaultConfig[NETWORK.MOONRIVER].defaultGrantAmounts
+    // }
     // console.log({responses})
-    const responses = {
-        name: 'ij',
-        network: 'Moonbeam',
-        mipNumber: 3,
-        componentSplits: { ALL_MARKETS: 0.3, SAFETY_MODULE: 0.42, DEX_REWARDER: 0.28 },
-        emissionAmounts: { govTokens: 15625000, nativeTokens: 250000 }
-    }
 
     const currentNetwork = responses.network as NETWORK
 
@@ -102,11 +160,12 @@ async function generateConfig(){
     // Used by provider calls
     const blockTag: ethers.CallOverrides = {blockTag: latestBlock.number}
 
+    const dexInfo = await fetchDexInfo(
+        config, provider, blockTag, currentNetwork
+    )
+
     const safetyModuleInfo = await fetchSafetyModuleInfo(
-        config,
-        provider,
-        blockTag,
-        currentNetwork,
+        config, provider, blockTag, dexInfo.govTokenPrice,
     )
 
     // const totalSMEmissions =
@@ -127,9 +186,10 @@ async function generateConfig(){
         },
         snapshotBlock: latestBlock.number,
         safetyModuleInfo,
+        dexInfo,
         config: {
             daysPerRewardCycle: defaultConfig.daysPerRewardCycle,
-            ...config
+            ...omit(config, ['defaultGrantAmounts', 'defaultSplits'])
         },
         responses
     }
