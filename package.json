@@ -15,7 +15,7 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@moonwell-fi/moonwell.js": "^0.2.5",
+    "@moonwell-fi/moonwell.js": "^0.2.7",
     "lodash": "^4.17.21",
     "bignumber.js": "^9.1.1",
     "ethers": "^5.4.7",

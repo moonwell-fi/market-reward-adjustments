@@ -1,9 +1,10 @@
 # DEX Liquidity Pool Rewarder
-At the time this proposal was generated there were `<%= formatNumber(dexInfo.govTokenTotal, 0) %> <%= config.govTokenName %>` and `<%= formatNumber(dexInfo.nativeAssetTotal, 0) %> <%= config.nativeTokenName %>` provided by liquidity providers in the `<%= config.dexName %>` `<%= config.govTokenName %>/<%= config.nativeTokenName %>` pool totaling `$<%= formatNumber(dexInfo.poolTVL) %>`.
+At the time this proposal was generated there were `<%= formatNumber(dexInfo.govTokenTotal, 0) %>` **<%= config.govTokenName %>** and `<%= formatNumber(dexInfo.nativeAssetTotal, 0) %>` **<%= config.nativeTokenName %>** provided by liquidity providers in the **<%= config.dexName %>** **<%= config.govTokenName %>**/**<%= config.nativeTokenName %>** pool totaling `$<%= formatNumber(dexInfo.poolTVL) %>`.
 
-This proposal, if executed, would make the following changes to the Dex Rewarder to emit `<%= formatNumber(dexTokensToEmit, 0) %> <%= config.govTokenName %>` over the next <%= config.daysPerRewardCycle %>:
+This proposal, if executed, would adjust the rewards on the **Dex Rewarder** <%= dexCalcs.dexRewarderChangedPercentString %> and emit `<%= formatNumber(dexCalcs.dexTokensToEmit, 0) %>` **<%= config.govTokenName %>** over the next **<%= config.daysPerRewardCycle %> days**:
 
-- Reward speed:
-    - Current (estimated APR = `~<%= formatNumber(dexInfo.currentPoolAPR, 2) %>%`) days: <%= currentGovRewardSpeeds(config, new BigNumber(dexInfo.currentPoolRewardInfo.rewardPerSec)) %>
-        - Rewards Expire `<%= new Date(dexInfo.currentPoolRewardInfo.endTimestamp * 1000).toUTCString() %>`
-    - Proposed (estimated APR = `~<%= formatNumber(newDEXEmissionAPR, 2) %>%`): <%= proposedGovRewardSpeeds(config, newDEXEmissionsPerSecond) %>
+Current rewards will expire at **<%= new Date(dexInfo.currentPoolRewardInfo.endTimestamp * 1000).toUTCString() %>**
+
+- Current (estimated APR = `~<%= formatNumber(dexInfo.currentPoolAPR, 2) %>%`) days: <%= govRewardSpeeds(config, new BigNumber(dexInfo.currentPoolRewardInfo.rewardPerSec)) %>
+<br><br>
+- Proposed (estimated APR = `~<%= formatNumber(dexCalcs.newDEXEmissionAPR, 2) %>%`): <%= govRewardSpeeds(config, dexCalcs.newDEXEmissionsPerSecond) %>

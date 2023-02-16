@@ -5,6 +5,11 @@ export enum NETWORK {
     MOONBEAM = "Moonbeam",
 }
 
+export enum MARKET_SIDE {
+    SUPPLY = "SUPPLY",
+    BORROW = "BORROW",
+}
+
 export enum COMPONENT {
     ALL_MARKETS = "ALL_MARKETS",
     SAFETY_MODULE = "SAFETY_MODULE",
@@ -27,6 +32,11 @@ export type DefaultGrantConfig = {
     [REWARD_TYPE.NATIVE_TOKEN]: number
 }
 
+export type DefaultSupplyBorrowSplit = {
+    [MARKET_SIDE.SUPPLY]: number
+    [MARKET_SIDE.BORROW]: number
+}
+
 export type NetworkSpecificConfig = {
     rpc: string
     govTokenName: string
@@ -38,6 +48,7 @@ export type NetworkSpecificConfig = {
     defaultGrantAmounts: DefaultGrantConfig
     contracts: ContractBundle
     nativeAsset: Market
+    defaultBorrowSupplySplit: DefaultSupplyBorrowSplit
     toJSON: Function
 
 }

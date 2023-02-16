@@ -1,9 +1,9 @@
 import fs from "fs";
 import path from "path";
-import {split, template} from "lodash";
+import {omit, template} from "lodash";
 import {BigNumber} from "bignumber.js";
 import {formatNumber} from "./src/lib";
-import {COMPONENT, NetworkSpecificConfig, REWARD_TYPE} from "./src/types";
+import {COMPONENT, MARKET_SIDE, REWARD_TYPE} from "./src/types";
 
 function printIntro(){
     console.log("Welcome to the proposal generator!")
@@ -11,49 +11,172 @@ function printIntro(){
     console.log()
 }
 
+const ONE_YEAR_IN_DAYS = 365.25
+const ONE_DAY_IN_SECONDS = 60 * 60 * 24
+
 function loadTemplate(templateName: string){
     return fs.readFileSync(`./templates/${templateName}`, {encoding:'utf8', flag:'r'})
 }
 
-export function currentGovRewardSpeeds(config: any, emissionsPerSecond: BigNumber){
+export function  govRewardSpeeds(config: any, emissionsPerSecond: BigNumber){
     const ONE_DAY = 86400
+    const denoms = ["second", "day", "reward cycle (" + config.daysPerRewardCycle + " days)"]
     return [
-        formatNumber(
-            emissionsPerSecond, 4
-        ) + " " + config.govTokenName + " / second",
-        formatNumber(
-            emissionsPerSecond.times(ONE_DAY), 2
-        ) + " " + config.govTokenName + " / day",
-        formatNumber(
-            emissionsPerSecond.times(ONE_DAY).times(config.daysPerRewardCycle), 2
-        ) + " " + config.govTokenName + " / reward cycle (" + config.daysPerRewardCycle + " days)",
-    ].map(i => '\n        - `' + i + '`').join('')
+        formatNumber(emissionsPerSecond, 4),
+        formatNumber(emissionsPerSecond.times(ONE_DAY), 2),
+        formatNumber(emissionsPerSecond.times(ONE_DAY).times(config.daysPerRewardCycle), 2),
+    ].map(
+        (number, index) => {
+            return `\n    - \`${number}\` ${config.govTokenName} / **${denoms[index]}**`
+        }).join('')
 }
 
-export function proposedGovRewardSpeeds(config: any, newEmissionsPerSecond: BigNumber){
-    const ONE_DAY = 86400
-    return [
-        formatNumber(
-            newEmissionsPerSecond, 4
-        ) + " " + config.govTokenName + " / second",
-        formatNumber(
-            newEmissionsPerSecond.times(ONE_DAY), 2
-        ) + " " + config.govTokenName + " / day",
-        formatNumber(
-            newEmissionsPerSecond.times(ONE_DAY).times(config.daysPerRewardCycle), 2
-        ) + " " + config.govTokenName + " / reward cycle (" + config.daysPerRewardCycle + " days)",
-    ].map(i => '\n        - `' + i + '`').join('')
+// Sanity checks for the config being read in
+function doSanityChecks(mipData: any){
+    // Check component splits equal 100%
+    const componentSums = Object.values(mipData.responses.componentSplits).reduce((acc: BigNumber, percent: any) => { return acc.plus(percent) }, new BigNumber(0))
+    if (!componentSums.isEqualTo(1)){
+        console.log("Component splits:\n", mipData.responses.componentSplits)
+        throw new Error("Component don't equal 1!")
+    }
+
+    // Check market distribution splits equal 100%
+    const splitSums = Object.values(mipData.marketData.rewardSplits).reduce((acc: BigNumber, percent: any) => { return acc.plus(percent) }, new BigNumber(0))
+    if (!splitSums.isEqualTo(1)){
+        console.log("Market splits:\n", mipData.marketData.rewardSplits)
+        throw new Error("Market splits don't equal 1!")
+    }
+
+    Object.entries(mipData.marketData.assets).forEach(([marketTicker, marketData]: [string, any]) => {
+        const supply = new BigNumber(marketData.supplyBorrowSplit[MARKET_SIDE.SUPPLY])
+        const borrow = new BigNumber(marketData.supplyBorrowSplit[MARKET_SIDE.BORROW])
+        if (!supply.plus(borrow).isEqualTo(1)){
+            throw new Error(`The split on market ${marketTicker} doesn't add up to 1! ${JSON.stringify(marketData.supplyBorrowSplit)}`)
+        }
+    })
 }
 
-function sanityChecks(mipData: any){
-    // Sanity check the splits
-    if (
-        mipData.responses.componentSplits[COMPONENT.SAFETY_MODULE] +
-        mipData.responses.componentSplits[COMPONENT.DEX_REWARDER] +
-        mipData.responses.componentSplits[COMPONENT.ALL_MARKETS]
-        !== 1
-    ){
-        throw new Error("Splits don't equal 1!")
+async function getDexCalcs(mipConfig: any, govTokenAmountToEmit: number) {
+    const dexSplitPercentage = mipConfig.responses.componentSplits[COMPONENT.DEX_REWARDER]
+    const dexTokensToEmit = new BigNumber(govTokenAmountToEmit).times(dexSplitPercentage)
+
+    const newDEXEmissionsPerSecond = dexTokensToEmit.dividedBy(ONE_DAY_IN_SECONDS * mipConfig.config.daysPerRewardCycle)
+    const newDEXEmissionsPerYear = newDEXEmissionsPerSecond.times(ONE_DAY_IN_SECONDS).times(ONE_YEAR_IN_DAYS)
+    const newDEXEmissionAPR = new BigNumber(mipConfig.dexInfo.poolTVL)
+        .plus(newDEXEmissionsPerYear.times(mipConfig.dexInfo.govTokenPrice))
+        .div(new BigNumber(mipConfig.dexInfo.poolTVL))
+        .minus(1)
+        .times(100)
+    const dexRewarderChangedPercent = new BigNumber(newDEXEmissionsPerYear)
+        .div(mipConfig.dexInfo.emissionsPerYear)
+        .minus(1)
+        .times(100)
+
+    let dexRewarderChangedPercentString
+    if (dexRewarderChangedPercent.integerValue().isGreaterThan(0)){
+        dexRewarderChangedPercentString = `to <span style="color:#5CCC4E">increase</span> emissions <span style="color:#5CCC4E">+${formatNumber(dexRewarderChangedPercent, 2)}%</span>`
+    } else if (dexRewarderChangedPercent.integerValue().isLessThan(0)){
+        dexRewarderChangedPercentString = `to <span style="color:red">decrease</span> emissions <span style="color:red">${formatNumber(dexRewarderChangedPercent, 2)}%</span>`
+    } else {
+        dexRewarderChangedPercentString = `<span style="color:#FFCF60">to keep emissions the same</span>`
+    }
+
+    return {
+        dexTokensToEmit,
+        newDEXEmissionsPerSecond,
+        newDEXEmissionAPR,
+        dexRewarderChangedPercentString,
+    }
+}
+
+async function getSafetyModuleCalcs(mipConfig: any, govTokenAmountToEmit: number) {
+    const smSplitPercentage = mipConfig.responses.componentSplits[COMPONENT.SAFETY_MODULE]
+    const smTokensToEmit = new BigNumber(govTokenAmountToEmit).times(smSplitPercentage)
+
+    const newSMEmissionsPerSecond = smTokensToEmit.dividedBy(60 * 60 * 24 * mipConfig.config.daysPerRewardCycle)
+    const newSMEmissionsPerYear = newSMEmissionsPerSecond.times(ONE_DAY_IN_SECONDS).times(ONE_YEAR_IN_DAYS)
+    const newSMEmissionAPR = new BigNumber(mipConfig.safetyModuleInfo.totalStaked)
+        .plus(newSMEmissionsPerYear)
+        .div(mipConfig.safetyModuleInfo.totalStaked)
+        .minus(1)
+        .times(100)
+    const safetyModuleChangedPercent = new BigNumber(newSMEmissionsPerYear)
+        .div(mipConfig.safetyModuleInfo.emissions.emissionsPerYear)
+        .minus(1)
+        .times(100)
+
+    let smChangePercentString
+    console.log({safetyModuleChangedPercent: safetyModuleChangedPercent.toFixed(30)})
+    if (safetyModuleChangedPercent.integerValue().isGreaterThan(0)){
+        smChangePercentString = `to <span style="color:#5CCC4E">increase</span> emissions <span style="color:#5CCC4E">+${formatNumber(safetyModuleChangedPercent, 2)}%</span>`
+    } else if (safetyModuleChangedPercent.integerValue().isLessThan(0)){
+        smChangePercentString = `to <span style="color:red">decrease</span> emissions <span style="color:red">${formatNumber(safetyModuleChangedPercent, 2)}%</span>`
+    } else {
+        smChangePercentString = `to <span style="color:#FFCF60">keep emissions the same</span>`
+    }
+
+    return {
+        smTokensToEmit,
+        newSMEmissionsPerSecond,
+        newSMEmissionAPR,
+        smChangePercentString,
+    }
+}
+
+function getMarketCalcs(mipConfig: any, totalGovTokenAmountToEmit: BigNumber, totalNativeTokenAmountToEmit: BigNumber, individualMarketData: any, marketShare: number,) {
+    const govTokensToEmit = totalGovTokenAmountToEmit.times(marketShare)
+    const nativeTokensToEmit = totalNativeTokenAmountToEmit.times(marketShare)
+
+    console.log('wtf', {totalGovTokenAmountToEmit: totalGovTokenAmountToEmit.toFixed(), marketShare, govTokensToEmit: govTokensToEmit.toFixed()})
+    // ((750000000 * 0.33) / 4) / 52 / 7 == 169,986.2637362637
+    // 169,520.5479452055
+
+    const SUPPLY_PERCENT = individualMarketData.supplyBorrowSplit[MARKET_SIDE.SUPPLY]
+    const BORROW_PERCENT = individualMarketData.supplyBorrowSplit[MARKET_SIDE.BORROW]
+
+    const DAYS_PER_CYCLE = mipConfig.config.daysPerRewardCycle
+
+    console.log("Market gets", govTokensToEmit.toFixed(4), nativeTokensToEmit.toFixed(4))
+
+    const proposedSupplyGovTokensPerSecond = govTokensToEmit.times(SUPPLY_PERCENT).div(DAYS_PER_CYCLE).div(ONE_DAY_IN_SECONDS)
+    const proposedSupplyNativeTokensPerSecond = nativeTokensToEmit.times(SUPPLY_PERCENT).div(DAYS_PER_CYCLE).div(ONE_DAY_IN_SECONDS)
+    const proposedBorrowGovTokensPerSecond = govTokensToEmit.times(BORROW_PERCENT).div(DAYS_PER_CYCLE).div(ONE_DAY_IN_SECONDS)
+    const proposedBorrowNativeTokensPerSecond = nativeTokensToEmit.times(BORROW_PERCENT).div(DAYS_PER_CYCLE).div(ONE_DAY_IN_SECONDS)
+
+    return {
+        // Current stuff
+        currentGovSupplyPerSecond: new BigNumber(individualMarketData.govSupplySpeed).div(1e18),
+        currentGovSupplyPerDay: new BigNumber(individualMarketData.govSupplySpeed).div(1e18).times(ONE_DAY_IN_SECONDS),
+        currentGovSupplyPerPeriod: new BigNumber(individualMarketData.govSupplySpeed).div(1e18).times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
+
+        currentGovBorrowPerSecond: new BigNumber(individualMarketData.govBorrowSpeed).div(1e18),
+        currentGovBorrowPerDay: new BigNumber(individualMarketData.govBorrowSpeed).div(1e18).times(ONE_DAY_IN_SECONDS),
+        currentGovBorrowPerPeriod: new BigNumber(individualMarketData.govBorrowSpeed).div(1e18).times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
+
+        currentNativeSupplyPerSecond: new BigNumber(individualMarketData.nativeSupplySpeed).div(1e18),
+        currentNativeSupplyPerDay: new BigNumber(individualMarketData.nativeSupplySpeed).div(1e18).times(ONE_DAY_IN_SECONDS),
+        currentNativeSupplyPerPeriod: new BigNumber(individualMarketData.nativeSupplySpeed).div(1e18).times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
+
+        currentNativeBorrowPerSecond: new BigNumber(individualMarketData.nativeBorrowSpeed).div(1e18),
+        currentNativeBorrowPerDay: new BigNumber(individualMarketData.nativeBorrowSpeed).div(1e18).times(ONE_DAY_IN_SECONDS),
+        currentNativeBorrowPerPeriod: new BigNumber(individualMarketData.nativeBorrowSpeed).div(1e18).times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
+
+        // Proposed stuff
+        proposedSupplyGovTokensPerSecond,
+        proposedSupplyGovTokensPerDay: proposedSupplyGovTokensPerSecond.times(ONE_DAY_IN_SECONDS),
+        proposedSupplyGovTokensPerPeriod: proposedSupplyGovTokensPerSecond.times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
+
+        proposedSupplyNativeTokensPerSecond,
+        proposedSupplyNativeTokensPerDay: proposedSupplyNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS),
+        proposedSupplyNativeTokensPerPeriod: proposedSupplyNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
+
+        proposedBorrowGovTokensPerSecond,
+        proposedBorrowGovTokensPerDay: proposedBorrowGovTokensPerSecond.times(ONE_DAY_IN_SECONDS),
+        proposedBorrowGovTokensPerPeriod: proposedBorrowGovTokensPerSecond.times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
+
+        proposedBorrowNativeTokensPerSecond,
+        proposedBorrowNativeTokensPerDay: proposedBorrowNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS),
+        proposedBorrowNativeTokensPerPeriod:proposedBorrowNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
     }
 }
 
@@ -61,63 +184,82 @@ export default async function generateProposal(mipPath: string){
     const mipPathNormalized = path.resolve(__dirname, mipPath)
     if (fs.existsSync(mipPathNormalized)){
         const rawConfigData = fs.readFileSync(mipPathNormalized, {encoding:'utf8', flag:'r'})
-        console.log(rawConfigData)
-        const mipData = JSON.parse(rawConfigData)
+        const mipConfig = JSON.parse(rawConfigData)
 
-        sanityChecks(mipData)
+        // console.log(rawConfigData)
 
-        const govTokenAmountToEmit = mipData.responses.emissionAmounts[REWARD_TYPE.GOV_TOKEN]
+        // Strip off "Meta" stuff
+        const configToHash = JSON.stringify(omit(mipConfig, '_meta'), null, 2)
+        const configHash = require('crypto').createHash('sha256').update(configToHash).digest('hex')
 
-        const introMarkdown = template(loadTemplate('intro2.md.ejs'))
+        console.log("Config hash:", configHash)
+
+        doSanityChecks(mipConfig)
+
+        const govTokenAmountToEmit = mipConfig.responses.emissionAmounts[REWARD_TYPE.GOV_TOKEN]
+        const nativeTokenAmountToEmit = mipConfig.responses.emissionAmounts[REWARD_TYPE.NATIVE_TOKEN]
+        const globalRenderFunctions = { BigNumber, formatNumber, govRewardSpeeds }
+
+        // Intro stuff
+        const introMarkdown = template(loadTemplate('intro.md.ejs'))
 
         // Safety Module stuff
         const safetyModuleMarkdown = template(loadTemplate('safety-module.md.ejs'))
-
-        const smSplitPercentage = mipData.responses.componentSplits[COMPONENT.SAFETY_MODULE]
-        const smTokensToEmit = new BigNumber(govTokenAmountToEmit).times(smSplitPercentage)
-
-        const newSMEmissionsPerSecond = smTokensToEmit.dividedBy(60 * 60 * 24 * mipData.config.daysPerRewardCycle)
-        const newSMEmissionsPerYear = newSMEmissionsPerSecond.times(86400).times(365)
-        const newSMEmissionAPR = new BigNumber(mipData.safetyModuleInfo.totalStaked)
-            .plus(newSMEmissionsPerYear)
-            .div(mipData.safetyModuleInfo.totalStaked)
-            .minus(1)
-            .times(100)
+        const smCalcs = await getSafetyModuleCalcs(mipConfig, govTokenAmountToEmit)
 
         // Dex rewarder stuff
         const dexRewarderMarkdown = template(loadTemplate('dex-rewarder.md.ejs'))
+        const dexCalcs = await getDexCalcs(mipConfig, govTokenAmountToEmit)
 
-        const dexSplitPercentage = mipData.responses.componentSplits[COMPONENT.DEX_REWARDER]
-        const dexTokensToEmit = new BigNumber(govTokenAmountToEmit).times(dexSplitPercentage)
+        // Markets stuff
+        const marketTopper = template(loadTemplate('market-topper.md.ejs'))
+        const marketsMarkdown = template(loadTemplate('market.md.ejs'))
 
-        const newDEXEmissionsPerSecond = dexTokensToEmit.dividedBy(60 * 60 * 24 * mipData.config.daysPerRewardCycle)
-        const newDEXEmissionsPerYear = newDEXEmissionsPerSecond.times(86400).times(365)
-        const newDEXEmissionAPR = new BigNumber(mipData.dexInfo.poolTVL)
-            .plus(newDEXEmissionsPerYear.times(mipData.dexInfo.govTokenPrice))
-            .div(new BigNumber(mipData.dexInfo.poolTVL))
-            .minus(1)
-            .times(100)
+        // Go construct the markets section
+        let marketsString = marketTopper()
+        Object.entries(mipConfig.marketData.assets).forEach(([ticker, individualMarketData]) => {
+            const marketSplit = mipConfig.responses.componentSplits[COMPONENT.ALL_MARKETS]
+            console.log({govTokenAmountToEmit: govTokenAmountToEmit.toFixed()})
+            const marketGovTokensToEmit = new BigNumber(govTokenAmountToEmit).times(marketSplit)
 
-        const proposalContent = [
-            introMarkdown(mipData),
-            safetyModuleMarkdown({
-                BigNumber, formatNumber,
-                smTokensToEmit, newSMEmissionsPerSecond, newSMEmissionAPR,
-                currentGovRewardSpeeds,
-                proposedGovRewardSpeeds,
-                ...mipData
-            }),
-            dexRewarderMarkdown({
-                BigNumber, formatNumber,
-                dexTokensToEmit, newDEXEmissionsPerSecond, newDEXEmissionAPR,
-                currentGovRewardSpeeds,
-                proposedGovRewardSpeeds,
-                ...mipData
+            // Native tokens don't get split into anything else
+            const marketNativeTokensToEmit = new BigNumber(nativeTokenAmountToEmit)
+
+            const marketCalcs = getMarketCalcs(
+                mipConfig,
+                marketGovTokensToEmit,
+                marketNativeTokensToEmit,
+                individualMarketData,
+                mipConfig.marketData.rewardSplits[ticker],
+            )
+            marketsString += marketsMarkdown({
+                ticker, individualMarketData, marketCalcs,
+                ...globalRenderFunctions, ...mipConfig
             })
+        })
+
+        // Definitions section
+        const definitionMarkdown = mipConfig.config.networkName === 'Moonbeam' ?
+            template(loadTemplate('definitions.artemis.md.ejs')) :
+            template(loadTemplate('definitions.apollo.md.ejs'))
+
+        // Construct the proposal
+        const proposalContent = [
+            introMarkdown(mipConfig),
+            safetyModuleMarkdown({     smCalcs, ...globalRenderFunctions, ...mipConfig }),
+            dexRewarderMarkdown({     dexCalcs, ...globalRenderFunctions, ...mipConfig }),
+            marketsString,
+            definitionMarkdown(),
         ]
 
-        console.log(proposalContent.join('\n'))
-        fs.writeFileSync('proposal-content.md', proposalContent.join("\n"))
+        let formattedProposal = proposalContent.join('\n') + "\n"
+
+        formattedProposal += '---\n'
+        formattedProposal += `Config Hash: \`${configHash}\`\n`
+        formattedProposal += `<details> <summary>Proposal Config</summary> <pre>${rawConfigData}</pre> </details>`
+
+        console.log(formattedProposal)
+        fs.writeFileSync('proposal-content.md', formattedProposal)
     } else {
         console.log(`Sorry, ${mipPath} doesn't seem like a path to a MIP config...`)
         process.exit(1)
