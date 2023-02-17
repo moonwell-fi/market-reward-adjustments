@@ -142,6 +142,10 @@ export async function gatherInfoFromUser(){
 
     console.log()
 
+    const submitterWallet = await getName()
+
+    console.log()
+
     const network: NETWORK = await getNetwork()
 
     const config = defaultConfig[network]
@@ -157,7 +161,7 @@ export async function gatherInfoFromUser(){
     console.log(`Here is the current default reward splits for ${config.networkName}:`)
     console.log(`  - Safety Module:`, new BigNumber(config.defaultSplits[COMPONENT.SAFETY_MODULE]).times(100).toFixed() + "%", `(${config.defaultSplits[COMPONENT.SAFETY_MODULE]})`)
     console.log(`  - DEX Rewarder:`, new BigNumber(config.defaultSplits[COMPONENT.DEX_REWARDER]).times(100).toFixed() + "%", `(${config.defaultSplits[COMPONENT.DEX_REWARDER]})`)
-    console.log(`  - Market Rewards:`, new BigNumber(config.defaultSplits[COMPONENT.DEX_REWARDER]).times(100).toFixed() + "%", `(${config.defaultSplits[COMPONENT.ALL_MARKETS]})`)
+    console.log(`  - Market Rewards:`, new BigNumber(config.defaultSplits[COMPONENT.ALL_MARKETS]).times(100).toFixed() + "%", `(${config.defaultSplits[COMPONENT.ALL_MARKETS]})`)
 
     console.log()
 
@@ -172,6 +176,7 @@ export async function gatherInfoFromUser(){
         network,
         mipNumber,
         componentSplits,
-        emissionAmounts
+        emissionAmounts,
+        submitterWallet
     }
 }

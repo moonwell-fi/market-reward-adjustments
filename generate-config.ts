@@ -74,22 +74,19 @@ async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethers.prov
     }
     const govTokenPrice = nativeAssetTotal.div(govTokenTotal).times(nativePrice)
 
-    let poolID, poolInfo, currentPoolRewardInfo, nextFreeSlot, currentConfig
+    const poolInfo = await config.contracts.DEX_REWARDER.contract.connect(provider).poolInfo(config.dexPoolID)
+
+    let currentPoolRewardInfo, nextFreeSlot, currentConfig
     if (network === NETWORK.MOONBEAM){
-        poolID = 15
-        poolInfo = await config.contracts.DEX_REWARDER.contract.connect(provider).poolInfo(poolID)
         nextFreeSlot = poolInfo.allocPoint.toNumber()
-        currentConfig = await config.contracts.DEX_REWARDER.contract.connect(provider).poolRewardInfo(poolID, poolInfo.allocPoint.sub(1))
+        currentConfig = await config.contracts.DEX_REWARDER.contract.connect(provider).poolRewardInfo(config.dexPoolID, poolInfo.allocPoint.sub(1))
 
     } else if (network === NETWORK.MOONRIVER){
-        poolID = 11
-        poolInfo = await config.contracts.DEX_REWARDER.contract.connect(provider).poolInfo(poolID)
-
         // Go search for the next reward slot
         nextFreeSlot = 20
         for (;;){
             try {
-                currentConfig = await config.contracts.DEX_REWARDER.contract.connect(provider).poolRewardInfo(poolID, nextFreeSlot + 1)
+                currentConfig = await config.contracts.DEX_REWARDER.contract.connect(provider).poolRewardInfo(config.dexPoolID, nextFreeSlot + 1)
                 nextFreeSlot += 1
             } catch (e){
                 // Increment one more time to the next empty slot
@@ -139,7 +136,7 @@ async function fetchMarketData(config: NetworkSpecificConfig, provider: ethers.p
 
     for (const [displayTicker, market] of Object.entries(config.contracts.MARKETS)){
         // Ignore deprecated assets
-        if (market.isDeprecated || (config.networkName && displayTicker === 'BUSD.wh')){
+        if (market.isDeprecated || displayTicker === 'BUSD.wh' || displayTicker === 'BTC.multi'){
             continue
         }
 
@@ -190,7 +187,8 @@ async function fetchMarketData(config: NetworkSpecificConfig, provider: ethers.p
             govBorrowSpeed: new BigNumber(govBorrowSpeed.toString()),
             nativeSupplySpeed: new BigNumber(nativeSupplySpeed.toString()),
             nativeBorrowSpeed: new BigNumber(nativeBorrowSpeed.toString()),
-            supplyBorrowSplit: config.defaultBorrowSupplySplit,
+            nativeSupplyBorrowSplit: config.defaultBorrowSupplySplit,
+            govSupplyBorrowSplit: config.defaultBorrowSupplySplit,
         }
     }
 
@@ -229,21 +227,22 @@ async function fetchMarketData(config: NetworkSpecificConfig, provider: ethers.p
     return {
         assets: assetData,
         totalTVL,
-        rewardSplits
+        govRewardSplits: rewardSplits,
+        nativeRewardSplits: rewardSplits
     }
 }
 
 async function generateConfig(blockNum: string | number = 'latest'){
     printIntro()
 
-    // const responses = await gatherInfoFromUser()
-    const responses = {
-        name: 'ok',
-        network: 'Moonbeam',
-        mipNumber: 6,
-        componentSplits: defaultConfig[NETWORK.MOONBEAM].defaultSplits,
-        emissionAmounts: defaultConfig[NETWORK.MOONBEAM].defaultGrantAmounts
-    }
+    const responses = await gatherInfoFromUser()
+    // const responses = {
+    //     name: 'ok',
+    //     network: 'Moonbeam',
+    //     mipNumber: 6,
+    //     componentSplits: defaultConfig[NETWORK.MOONBEAM].defaultSplits,
+    //     emissionAmounts: defaultConfig[NETWORK.MOONBEAM].defaultGrantAmounts
+    // }
     // const responses = {
     //     name: 'ok',
     //     network: 'Moonriver',
@@ -300,7 +299,7 @@ async function generateConfig(blockNum: string | number = 'latest'){
         marketData,
         config: {
             daysPerRewardCycle: defaultConfig.daysPerRewardCycle,
-            ...omit(config, ['defaultGrantAmounts', 'defaultSplits'])
+            ...omit(config, ['defaultGrantAmounts', 'defaultSplits', 'defaultBorrowSupplySplit'])
         },
         responses
     }

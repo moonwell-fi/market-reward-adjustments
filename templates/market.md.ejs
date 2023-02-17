@@ -1,41 +1,47 @@
-## <%= ticker %> Market
+# <%= ticker %> Market
 
 |||
 |-|-|
-| Latest price | **$<%= formatNumber(individualMarketData.price, 2) %>** |
-| Supplied | **<%= formatNumber(individualMarketData.totalSuppliedUnderlying) %> <%= ticker %>** |
-| Borrowed | **<%= formatNumber(individualMarketData.totalBorrows) %>** **<%= ticker %>** |
+| Latest price | **$<%= formatNumber(individualMarketData.price) %>** |
+| Supplied | **<%= formatNumber(individualMarketData.totalSuppliedUnderlying) %>** <%= ticker %> |
+| Borrowed | **<%= formatNumber(individualMarketData.totalBorrows) %>** <%= ticker %> |
 | Supplied TVL | **$<%= formatNumber(individualMarketData.totalSuppliedTVL) %>** |
 | Borrowed TVL | **$<%= formatNumber(individualMarketData.totalBorrowedTVL) %>** |
 | Utilization | **<%= formatNumber(new BigNumber(individualMarketData.utilization).times(100), 2) %>%** |
+| <%= config.govTokenName %> Incentive Share | **<%= formatNumber(new BigNumber(marketData.govRewardSplits[ticker]).times(100), 0) %>%** |
+| <%= config.nativeTokenName %> Incentive Share | **<%= formatNumber(new BigNumber(marketData.nativeRewardSplits[ticker]).times(100), 0) %>%** |
 
-> ### <%= config.govTokenName %> Incentives
-> &nbsp;
-| | Current Value | Proposed Value |
-|:-:|:-|:-|
-| **Supply Side** | **<%= formatNumber(marketCalcs.currentGovSupplyPerSecond, 4) %>** <%= config.govTokenName %> / sec     | **<%= formatNumber(marketCalcs.proposedSupplyGovTokensPerSecond, 4) %>** <%= config.govTokenName %> / sec |
-|                 | **<%= formatNumber(marketCalcs.currentGovSupplyPerDay, 2) %>** <%= config.govTokenName %> / day        | **<%= formatNumber(marketCalcs.proposedSupplyGovTokensPerDay, 2) %>** <%= config.govTokenName %> / day |
-|                 | **<%= formatNumber(marketCalcs.currentGovSupplyPerPeriod, 2) %>** <%= config.govTokenName %> / cycle\* | **<%= formatNumber(marketCalcs.proposedSupplyGovTokensPerPeriod, 2) %>** <%= config.govTokenName %> / cycle\* |
-||||
-| **Borrow Side** | **<%= formatNumber(marketCalcs.currentGovBorrowPerSecond, 4) %>** <%= config.govTokenName %> / sec     | **<%= formatNumber(marketCalcs.proposedBorrowGovTokensPerSecond, 4) %>** <%= config.govTokenName %> / sec |
-|                 | **<%= formatNumber(marketCalcs.currentGovBorrowPerDay, 2) %>** <%= config.govTokenName %> / day        | **<%= formatNumber(marketCalcs.proposedBorrowGovTokensPerDay, 2) %>** <%= config.govTokenName %> / day |
-|                 | **<%= formatNumber(marketCalcs.currentGovBorrowPerPeriod, 2) %>** <%= config.govTokenName %> / cycle\* | **<%= formatNumber(marketCalcs.proposedBorrowGovTokensPerPeriod, 2) %>** <%= config.govTokenName %> / cycle\* |
->
-> \* Reward cycle is 28 days long
+> #### **<%= config.govTokenName %>** Incentives
 
-> ### <%= config.nativeTokenName %> Incentives
-> &nbsp;
-| | Current Value | Proposed Value |
+| | Current | Proposed |
 |:-:|:-|:-|
-| **Supply Side** | **<%= formatNumber(marketCalcs.currentNativeSupplyPerSecond, 4) %>** <%= config.nativeTokenName %> / sec     | **<%= formatNumber(marketCalcs.proposedSupplyNativeTokensPerSecond, 4) %>** <%= config.nativeTokenName %> / sec     |
-|                 | **<%= formatNumber(marketCalcs.currentNativeSupplyPerDay, 2) %>** <%= config.nativeTokenName %> / day        | **<%= formatNumber(marketCalcs.proposedSupplyNativeTokensPerDay, 2) %>** <%= config.nativeTokenName %> / day     |
-|                 | **<%= formatNumber(marketCalcs.currentNativeSupplyPerPeriod, 2) %>** <%= config.nativeTokenName %> / cycle\* | **<%= formatNumber(marketCalcs.proposedSupplyNativeTokensPerPeriod, 2) %>** <%= config.nativeTokenName %> / cycle\* |
+| **Supply Side**        | **<%= formatNumber(marketCalcs.currentGovSupplyPerSecond, 4) %>** <%= config.govTokenName %> / sec     | **<%= formatNumber(marketCalcs.proposedSupplyGovTokensPerSecond, 4) %>** <%= config.govTokenName %> / sec |
+| <%= supplyGovChange %> | **<%= formatNumber(marketCalcs.currentGovSupplyPerDay, 2) %>** <%= config.govTokenName %> / day        | **<%= formatNumber(marketCalcs.proposedSupplyGovTokensPerDay, 2) %>** <%= config.govTokenName %> / day |
+|                        | **<%= formatNumber(marketCalcs.currentGovSupplyPerPeriod, 2) %>** <%= config.govTokenName %> / cycle\* | **<%= formatNumber(marketCalcs.proposedSupplyGovTokensPerPeriod, 2) %>** <%= config.govTokenName %> / cycle\* |
 ||||
-| **Borrow Side** | **<%= formatNumber(marketCalcs.currentNativeBorrowPerSecond, 4) %>** <%= config.nativeTokenName %> / sec     | **<%= formatNumber(marketCalcs.proposedBorrowNativeTokensPerSecond, 4) %>** <%= config.nativeTokenName %> / sec     |
-|                 | **<%= formatNumber(marketCalcs.currentNativeBorrowPerDay, 2) %>** <%= config.nativeTokenName %> / day        | **<%= formatNumber(marketCalcs.proposedBorrowNativeTokensPerDay, 2) %>** <%= config.nativeTokenName %> / day     |
-|                 | **<%= formatNumber(marketCalcs.currentNativeBorrowPerPeriod, 2) %>** <%= config.nativeTokenName %> / cycle\* | **<%= formatNumber(marketCalcs.proposedBorrowNativeTokensPerPeriod, 2) %>** <%= config.nativeTokenName %> / cycle\* |
->
-> \* Reward cycle is 28 days long
+| **Borrow Side**        | **<%= formatNumber(marketCalcs.currentGovBorrowPerSecond, 4) %>** <%= config.govTokenName %> / sec     | **<%= formatNumber(marketCalcs.proposedBorrowGovTokensPerSecond, 4) %>** <%= config.govTokenName %> / sec |
+| <%= borrowGovChange %> | **<%= formatNumber(marketCalcs.currentGovBorrowPerDay, 2) %>** <%= config.govTokenName %> / day        | **<%= formatNumber(marketCalcs.proposedBorrowGovTokensPerDay, 2) %>** <%= config.govTokenName %> / day |
+|                        | **<%= formatNumber(marketCalcs.currentGovBorrowPerPeriod, 2) %>** <%= config.govTokenName %> / cycle\* | **<%= formatNumber(marketCalcs.proposedBorrowGovTokensPerPeriod, 2) %>** <%= config.govTokenName %> / cycle\* |
+
+> #### **<%= config.nativeTokenName %>** Incentives
+
+| | Current | Proposed |
+|:-:|:-|:-|
+| **Supply Side**           | **<%= formatNumber(marketCalcs.currentNativeSupplyPerSecond, 4) %>** <%= config.nativeTokenName %> / sec     | **<%= formatNumber(marketCalcs.proposedSupplyNativeTokensPerSecond, 4) %>** <%= config.nativeTokenName %> / sec     |
+| <%= supplyNativeChange %> | **<%= formatNumber(marketCalcs.currentNativeSupplyPerDay, 2) %>** <%= config.nativeTokenName %> / day        | **<%= formatNumber(marketCalcs.proposedSupplyNativeTokensPerDay, 2) %>** <%= config.nativeTokenName %> / day     |
+|                           | **<%= formatNumber(marketCalcs.currentNativeSupplyPerPeriod, 2) %>** <%= config.nativeTokenName %> / cycle\* | **<%= formatNumber(marketCalcs.proposedSupplyNativeTokensPerPeriod, 2) %>** <%= config.nativeTokenName %> / cycle\* |
+||||
+| **Borrow Side**           | **<%= formatNumber(marketCalcs.currentNativeBorrowPerSecond, 4) %>** <%= config.nativeTokenName %> / sec     | **<%= formatNumber(marketCalcs.proposedBorrowNativeTokensPerSecond, 4) %>** <%= config.nativeTokenName %> / sec     |
+| <%= borrowNativeChange %> | **<%= formatNumber(marketCalcs.currentNativeBorrowPerDay, 2) %>** <%= config.nativeTokenName %> / day        | **<%= formatNumber(marketCalcs.proposedBorrowNativeTokensPerDay, 2) %>** <%= config.nativeTokenName %> / day     |
+|                           | **<%= formatNumber(marketCalcs.currentNativeBorrowPerPeriod, 2) %>** <%= config.nativeTokenName %> / cycle\* | **<%= formatNumber(marketCalcs.proposedBorrowNativeTokensPerPeriod, 2) %>** <%= config.nativeTokenName %> / cycle\* |
+
+\* Reward cycle is **<%= config.daysPerRewardCycle %> days** long
+
+Raw Calls:
+```
+COMPTROLLER._setRewardSpeed(0, <%= mTokenAddress %>, <%= marketCalcs.proposedSupplyGovTokensPerSecond.shiftedBy(18).integerValue(BigNumber.ROUND_DOWN) %>, <%= marketCalcs.proposedBorrowGovTokensPerSecond.shiftedBy(18).integerValue(BigNumber.ROUND_DOWN) %>)
+COMPTROLLER._setRewardSpeed(1, <%= mTokenAddress %>, <%= marketCalcs.proposedSupplyNativeTokensPerSecond.shiftedBy(18).integerValue(BigNumber.ROUND_DOWN) %>, <%= marketCalcs.proposedBorrowNativeTokensPerSecond.shiftedBy(18).integerValue(BigNumber.ROUND_DOWN) %>)
+```
 
 ---
 

@@ -1,7 +1,7 @@
 # Safety Module
-At the time this proposal was generated there was `<%= formatNumber(safetyModuleInfo.totalStaked, 0) %>` **<%= config.govTokenName %>** staked in the **Safety Module**, with a valuation of `$<%= formatNumber(safetyModuleInfo.stakedTVL) %>` (based on a **<%= config.govTokenName %>** price of `$<%= formatNumber(safetyModuleInfo.govTokenPrice, 4)  %>` pulled from **<%= config.dexName %>**).
+At the time this proposal was generated there was `<%= formatNumber(safetyModuleInfo.totalStaked, 0) %>` **<%= config.govTokenName %>** staked in the **Safety Module**, with a valuation of `$<%= formatNumber(safetyModuleInfo.stakedTVL) %>` (based on a **<%= config.govTokenName %>** price of `$<%= formatNumber(safetyModuleInfo.govTokenPrice, 6)  %>` pulled from **<%= config.dexName %>**).
 
-This proposal, if executed, would adjust the rewards on the **Safety Module** <%= smCalcs.smChangePercentString %> and emit `<%= formatNumber(smCalcs.smTokensToEmit, 0) %>` **<%= config.govTokenName %>** over the next **<%= config.daysPerRewardCycle %> days**:
+This proposal, if executed, would adjust the rewards on the **Safety Module** <%= smCalcs.smChangePercentString %> and emits `<%= formatNumber(smCalcs.smTokensToEmit, 0) %>` **<%= config.govTokenName %>** over the next **<%= config.daysPerRewardCycle %> days**:
 
 - Current (estimated APR = `~<%= formatNumber(safetyModuleInfo.emissions.emissionAPR, 2) %>%`): <%= govRewardSpeeds(config, new BigNumber(safetyModuleInfo.emissions.emissionsPerSecond)) %>
 <br><br>

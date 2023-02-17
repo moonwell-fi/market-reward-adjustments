@@ -1,7 +1,7 @@
 # DEX Liquidity Pool Rewarder
 At the time this proposal was generated there were `<%= formatNumber(dexInfo.govTokenTotal, 0) %>` **<%= config.govTokenName %>** and `<%= formatNumber(dexInfo.nativeAssetTotal, 0) %>` **<%= config.nativeTokenName %>** provided by liquidity providers in the **<%= config.dexName %>** **<%= config.govTokenName %>**/**<%= config.nativeTokenName %>** pool totaling `$<%= formatNumber(dexInfo.poolTVL) %>`.
 
-This proposal, if executed, would adjust the rewards on the **Dex Rewarder** <%= dexCalcs.dexRewarderChangedPercentString %> and emit `<%= formatNumber(dexCalcs.dexTokensToEmit, 0) %>` **<%= config.govTokenName %>** over the next **<%= config.daysPerRewardCycle %> days**:
+This proposal, if executed, would adjust the rewards on the **Dex Rewarder** <%= dexCalcs.dexRewarderChangedPercentString %> and emits `<%= formatNumber(dexCalcs.dexTokensToEmit, 0) %>` **<%= config.govTokenName %>** over the next **<%= config.daysPerRewardCycle %> days**:
 
 Current rewards will expire at **<%= new Date(dexInfo.currentPoolRewardInfo.endTimestamp * 1000).toUTCString() %>**
 
