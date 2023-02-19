@@ -9,7 +9,7 @@
     "moonwell-proposal-generator": "dist/cmd/generate-proposal.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"No test specified\"",
     "prepublish": "tsc --build",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
