@@ -1,0 +1,14 @@
+    <%= chalk.greenBright(`${marketTicker}`) %>
+        Latest Price: <%= chalk.yellowBright( formatNumber(individualMarketData.price) ) %>
+        Supplied: <%= chalk.yellowBright( formatNumber(individualMarketData.totalSuppliedUnderlying) + " " + marketTicker ) %>
+        Borrowed: <%= chalk.yellowBright( formatNumber(individualMarketData.totalBorrows) + " " + marketTicker ) %>
+        Supplied TVL: <%= chalk.yellowBright( formatNumber(individualMarketData.totalSuppliedTVL) ) %>
+        Borrowed TVL: <%= chalk.yellowBright( formatNumber(individualMarketData.totalBorrowedTVL) ) %>
+        Utilization: <%= chalk.yellowBright( formatNumber(new BigNumber(individualMarketData.utilization).times(100), 2) ) %>
+        <%= config.govTokenName %> Incentive Share: <%= chalk.yellowBright(formatNumber(new BigNumber(marketData.govRewardSplits[marketTicker]).times(100), 0) + "%") %>
+        <%= config.nativeTokenName %> Incentive Share: <%= chalk.yellowBright(formatNumber(new BigNumber(marketData.nativeRewardSplits[marketTicker]).times(100), 0) + "%") %>
+
+        <%= chalk.greenBright(config.govTokenName + " Rewards") %>
+            <%= multiEmissionTable(individualMarketData, config, 12).govRewardTable %>
+        <%= chalk.greenBright(config.nativeTokenName + " Rewards") %>
+            <%= multiEmissionTable(individualMarketData, config, 12).nativeRewardTable %>

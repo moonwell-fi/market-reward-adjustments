@@ -1,0 +1,22 @@
+<%= chalk.greenBright('DEX Liquidity Pool Rewarder') %>
+    DEX <%= config.govTokenName    %> Side: <%= chalk.yellowBright(formatNumber(dexInfo.govTokenTotal, 0)) %>
+    DEX <%= config.nativeTokenName %> Side: <%= chalk.yellowBright(formatNumber(dexInfo.nativeAssetTotal, 0)) %>
+    TVL: <%= chalk.yellowBright("$" + formatNumber(dexInfo.poolTVL)) %>
+    Dex: <%= chalk.yellowBright(config.dexName) %>
+    Current Reward Expire: <%= chalk.yellowBright(new Date(dexInfo.currentPoolRewardInfo.endTimestamp * 1000).toUTCString()) %>
+
+    Total tokens to emit: <%= chalk.yellowBright(formatNumber(dexCalcs.dexTokensToEmit, 0)) %> <%= chalk.yellowBright(config.govTokenName) %> over <%= chalk.yellowBright(config.daysPerRewardCycle) %> days
+    Emissions Change: <%=
+        dexCalcs.dexRewarderChangedPercent.isGreaterThan(0) ?
+                chalk.greenBright("+" + formatNumber(dexCalcs.dexRewarderChangedPercent, 2) + "%") :
+                chalk.redBright(        formatNumber(dexCalcs.dexRewarderChangedPercent, 2) + "%")
+    %>
+
+    Current est. apr:  <%= chalk.yellowBright(formatNumber(dexInfo.currentPoolAPR, 2) + "%") %>
+    Proposal est. apr: <%= chalk.yellowBright(formatNumber(dexCalcs.newDEXEmissionAPR, 2) + "%") %>
+
+    <%= chalk.yellowBright('Current Emissions:') %>
+        <%= emissionTable(config, new BigNumber(dexInfo.currentPoolRewardInfo.rewardPerSec)) %>
+
+    <%= chalk.yellowBright('Proposed Emissions:') %>
+        <%= emissionTable(config, dexCalcs.newDEXEmissionsPerSecond) %>

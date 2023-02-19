@@ -24,6 +24,19 @@ export async function getName(){
     return promptResponse.name
 }
 
+export async function getSubmitterWallet(){
+    const promptResponse = await prompts([
+        {
+            type: 'text',
+            name: 'name',
+            message: 'What is your crypto address?',
+            validate: name => name.length === 0 ? `Please enter something!` : true
+        },
+    ], globalPromptOptions)
+
+    return promptResponse.name
+}
+
 export async function getNetwork(){
     const promptResponse = await prompts([
         {
@@ -142,7 +155,7 @@ export async function gatherInfoFromUser(){
 
     console.log()
 
-    const submitterWallet = await getName()
+    const submitterWallet = await getSubmitterWallet()
 
     console.log()
 

@@ -1,5 +1,12 @@
 import {BigNumber} from "bignumber.js";
 import {Contract} from "ethers";
+import fs from "fs";
+import {GlobalConfig} from "./types";
+import {getBorderCharacters, table} from "table";
+import chalk from "chalk";
+
+export const ONE_YEAR_IN_DAYS = 365.25
+export const ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 export function formatNumber(num: string | BigNumber, truncate: number = 2){
     const bigNum = new BigNumber(num)
@@ -24,4 +31,90 @@ export async function addProposalToPropData(contract: Contract, fn: string, args
     proposalData.values.push(0)
     proposalData.signatures.push(contract.interface.getFunction(fn).format())
     proposalData.callDatas.push('0x' + tx.data!.slice(10)) // chop off the method selector from the args
+}
+
+export function loadTemplate(templateName: string, dir = 'markdown'){
+    return fs.readFileSync(`./templates/${dir}/${templateName}`, {encoding:'utf8', flag:'r'})
+}
+
+export function govRewardSpeeds(config: any, emissionsPerSecond: BigNumber){
+    const ONE_DAY = 86400
+    const denoms = ["second", "day", "reward cycle (" + config.daysPerRewardCycle + " days)"]
+    return [
+        formatNumber(emissionsPerSecond, 4),
+        formatNumber(emissionsPerSecond.times(ONE_DAY), 2),
+        formatNumber(emissionsPerSecond.times(ONE_DAY).times(config.daysPerRewardCycle), 2),
+    ].map(
+        (number, index) => {
+            return `\n    - \`${number}\` ${config.govTokenName} / **${denoms[index]}**`
+        }).join('')
+}
+
+export function emissionTable(config: GlobalConfig, emissionsPerSecond: BigNumber, padding = 8, tokenName?: string){
+    if (!tokenName){
+        tokenName = config.govTokenName
+    }
+    return table([
+        [tokenName + ' per second', chalk.yellowBright(formatNumber(
+            emissionsPerSecond,
+            4
+        ))],
+        [tokenName + ' per day', chalk.yellowBright(formatNumber(
+            emissionsPerSecond.times(ONE_DAY_IN_SECONDS),
+            4
+        ))],
+        [tokenName + ' per cycle', chalk.yellowBright(formatNumber(
+            emissionsPerSecond.times(ONE_DAY_IN_SECONDS).times(config.daysPerRewardCycle),
+            4
+        ))]
+    ], {
+        columns: [
+            { alignment: 'left' },
+            { alignment: 'right' }
+        ],
+        border: getBorderCharacters('norc')
+    }).split('\n').join("\n" + " ".repeat(padding)).trim()
+}
+
+export function multiEmissionTable(marketDataWithCalcs: any, config: GlobalConfig, padding = 0){
+    const marketCalcs = marketDataWithCalcs.marketCalcs
+    const changes = marketDataWithCalcs.changes
+
+    function formatChange(changeNumDecimal: BigNumber){
+        if (!changeNumDecimal.isFinite()){
+            return "N/A"
+        }
+        return changeNumDecimal.isGreaterThan(0) ?
+            chalk.greenBright("+" + formatNumber(changeNumDecimal.times(100), 2) + "%") :
+            chalk.redBright(formatNumber(changeNumDecimal.times(100), 2) + "%")
+    }
+
+    const govRewardTable = table([
+        ["",                                     chalk.yellowBright("Current"),                                                                                                                                               chalk.yellowBright("Proposed")],
+        [`${chalk.yellowBright('Supply')} Side`, chalk.yellowBright(formatNumber(marketCalcs.currentGovSupplyPerSecond, 4))                                                   + " " + config.govTokenName + "/ sec", chalk.yellowBright(formatNumber(marketCalcs.proposedSupplyGovTokensPerSecond, 4))                                                   + " " + config.govTokenName + "/ sec"],
+        [formatChange(changes.supplyGovChange),  chalk.yellowBright(formatNumber(marketCalcs.currentGovSupplyPerSecond.times(ONE_DAY_IN_SECONDS), 4))                         + " " + config.govTokenName + "/ sec",  chalk.yellowBright(formatNumber(marketCalcs.proposedSupplyGovTokensPerSecond.times(ONE_DAY_IN_SECONDS), 4))                         + " " + config.govTokenName + "/ sec"],
+        ["",                                     chalk.yellowBright(formatNumber(marketCalcs.currentGovSupplyPerSecond.times(ONE_DAY_IN_SECONDS).times(ONE_YEAR_IN_DAYS), 4)) + " " + config.govTokenName + "/ sec", chalk.yellowBright(formatNumber(marketCalcs.proposedSupplyGovTokensPerSecond.times(ONE_DAY_IN_SECONDS).times(ONE_YEAR_IN_DAYS), 4)) + " " + config.govTokenName + "/ sec"],
+        [`${chalk.yellowBright('Borrow')} Side`, chalk.yellowBright(formatNumber(marketCalcs.currentGovBorrowPerSecond, 4))                                                   + " " + config.govTokenName + "/ sec", chalk.yellowBright(formatNumber(marketCalcs.proposedBorrowGovTokensPerSecond, 4))                                                   + " " + config.govTokenName + "/ sec"],
+        [formatChange(changes.borrowGovChange),  chalk.yellowBright(formatNumber(marketCalcs.currentGovBorrowPerSecond.times(ONE_DAY_IN_SECONDS), 4))                         + " " + config.govTokenName + "/ sec",  chalk.yellowBright(formatNumber(marketCalcs.proposedBorrowGovTokensPerSecond.times(ONE_DAY_IN_SECONDS), 4))                         + " " + config.govTokenName + "/ sec"],
+        ["",                                     chalk.yellowBright(formatNumber(marketCalcs.currentGovBorrowPerSecond.times(ONE_DAY_IN_SECONDS).times(ONE_YEAR_IN_DAYS), 4)) + " " + config.govTokenName + "/ sec", chalk.yellowBright(formatNumber(marketCalcs.proposedBorrowGovTokensPerSecond.times(ONE_DAY_IN_SECONDS).times(ONE_YEAR_IN_DAYS), 4)) + " " + config.govTokenName + "/ sec"],
+    ], {
+        columns: [{ alignment: 'center' }, { alignment: 'right' }, { alignment: 'right' }],
+        border: getBorderCharacters('norc')
+    }).split('\n').join("\n" + " ".repeat(padding)).trim()
+
+    const nativeRewardTable = table([
+        ["",                                       chalk.yellowBright("Current"),                                                                                                                                                    chalk.yellowBright("Proposed")],
+        [`${chalk.yellowBright('Supply')} Side`,   chalk.yellowBright(formatNumber(marketCalcs.currentNativeSupplyPerSecond, 4))                                                   + " " + config.nativeTokenName + "/ sec", chalk.yellowBright(formatNumber(marketCalcs.proposedSupplyNativeTokensPerSecond, 4))                                                   + " " + config.nativeTokenName + "/ sec"],
+        [formatChange(changes.supplyNativeChange), chalk.yellowBright(formatNumber(marketCalcs.currentNativeSupplyPerSecond.times(ONE_DAY_IN_SECONDS), 4))                         + " " + config.nativeTokenName + "/ sec", chalk.yellowBright(formatNumber(marketCalcs.proposedSupplyNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS), 4))                         + " " + config.nativeTokenName + "/ sec"],
+        ["",                                       chalk.yellowBright(formatNumber(marketCalcs.currentNativeSupplyPerSecond.times(ONE_DAY_IN_SECONDS).times(ONE_YEAR_IN_DAYS), 4)) + " " + config.nativeTokenName + "/ sec", chalk.yellowBright(formatNumber(marketCalcs.proposedSupplyNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS).times(ONE_YEAR_IN_DAYS), 4)) + " " + config.nativeTokenName + "/ sec"],
+        [`${chalk.yellowBright('Borrow')} Side`,   chalk.yellowBright(formatNumber(marketCalcs.currentNativeBorrowPerSecond, 4))                                                   + " " + config.nativeTokenName + "/ sec", chalk.yellowBright(formatNumber(marketCalcs.proposedBorrowNativeTokensPerSecond, 4))                                                   + " " + config.nativeTokenName + "/ sec"],
+        [formatChange(changes.borrowNativeChange), chalk.yellowBright(formatNumber(marketCalcs.currentNativeBorrowPerSecond.times(ONE_DAY_IN_SECONDS), 4))                         + " " + config.nativeTokenName + "/ sec", chalk.yellowBright(formatNumber(marketCalcs.proposedBorrowNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS), 4))                         + " " + config.nativeTokenName + "/ sec"],
+        ["",                                       chalk.yellowBright(formatNumber(marketCalcs.currentNativeBorrowPerSecond.times(ONE_DAY_IN_SECONDS).times(ONE_YEAR_IN_DAYS), 4)) + " " + config.nativeTokenName + "/ sec", chalk.yellowBright(formatNumber(marketCalcs.proposedBorrowNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS).times(ONE_YEAR_IN_DAYS), 4)) + " " + config.nativeTokenName + "/ sec"],
+    ], {
+        columns: [{ alignment: 'center' }, { alignment: 'right' }, { alignment: 'right' }], border: getBorderCharacters('norc')
+    }).split('\n').join("\n" + " ".repeat(padding)).trim()
+
+    return {
+        govRewardTable, nativeRewardTable,
+    }
 }

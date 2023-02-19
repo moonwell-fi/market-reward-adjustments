@@ -1,10 +1,19 @@
 {
-  "name": "market-reward-adjustments",
+  "name": "@moonwell-fi/market-reward-adjuster",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/generate-config.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "moonwell-config-generator": "dist/generate-config.js",
+    "moonwell-proposal-generator": "dist/generate-proposal.js"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "tsc --build",
+    "build": "tsc --build",
+    "postbuild": "cp package.json dist/",
+    "clean": "tsc --build --clean"
   },
   "author": "",
   "license": "ISC",
@@ -16,10 +25,12 @@
   },
   "dependencies": {
     "@moonwell-fi/moonwell.js": "^0.2.7",
-    "lodash": "^4.17.21",
     "bignumber.js": "^9.1.1",
+    "chalk": "^4.1.2",
+    "commander": "^10.0.0",
     "ethers": "^5.4.7",
-    "minimist": "^1.2.8",
-    "prompts": "^2.4.2"
+    "lodash": "^4.17.21",
+    "prompts": "^2.4.2",
+    "table": "^6.8.1"
   }
 }

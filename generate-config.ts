@@ -1,17 +1,18 @@
+#!/usr/bin/env node
+
 import {NETWORK, NetworkSpecificConfig, REWARD_TYPE} from "./src/types";
 import defaultConfig from "./configs/defaults";
 
 import {ethers} from 'ethers'
 import {BigNumber} from 'bignumber.js'
 import * as fs from "fs";
-import {formatNumber} from "./src/lib";
+import {formatNumber, ONE_DAY_IN_SECONDS, ONE_YEAR_IN_DAYS} from "./src/lib";
 import prompts = require("prompts");
 import {gatherInfoFromUser} from "./src/prompts";
 import {omit, sortBy} from "lodash";
-import {getDeployArtifact, Market} from "@moonwell-fi/moonwell.js";
-
-const ONE_YEAR_IN_DAYS = 365.25
-const ONE_DAY_IN_SECONDS = 60 * 60 * 24
+import {getDeployArtifact} from "@moonwell-fi/moonwell.js";
+import {program} from "commander";
+import generateProposal from "./generate-proposal";
 
 function printIntro(){
     console.log("Welcome to the moonwell market adjuster!")
@@ -326,13 +327,17 @@ async function generateConfig(blockNum: string | number = 'latest'){
 }
 
 if (require.main === module) {
-    const argv = require('minimist')(process.argv.slice(2));
+    program
+        .name("Moonwell Market Adjuster Config Generator")
+        .version(require('./package.json').version, '-v, --vers', 'Print the current version')
+        .option('-b, --block <blockNumber>', "The block number to use for the config", "latest")
 
-    // If a user specified
-    let blockNum = 'latest'
-    if (argv.b){ blockNum = argv.b }
-    if (argv.block){ blockNum = argv.block }
+    program.parse(process.argv)
 
-    // noinspection JSIgnoredPromiseFromCall
-    generateConfig(blockNum)
+    generateConfig(
+        program.opts().block
+    ).catch(e => {
+        console.error(e)
+        process.exit(1)
+    })
 }

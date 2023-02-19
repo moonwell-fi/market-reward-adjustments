@@ -1,0 +1,31 @@
+<%= chalk.greenBright('Safety Module') %>
+    Total Staked: <%=
+        chalk.yellowBright(formatNumber(safetyModuleInfo.totalStaked, 0) + " " + config.govTokenName)
+    %>
+    TVL: <%=
+        chalk.greenBright("$" + formatNumber(safetyModuleInfo.stakedTVL))
+    %>
+    <%= config.govTokenName %> Price: <%=
+        chalk.greenBright('$' + formatNumber(safetyModuleInfo.govTokenPrice, 6))
+    %>
+    DEX: <%=
+        chalk.yellowBright(config.dexName)
+    %>
+
+    Total tokens to emit: <%=
+        chalk.yellowBright(formatNumber(smCalcs.smTokensToEmit, 0)) %> <%= chalk.yellowBright(config.govTokenName) %> over <%= chalk.yellowBright(config.daysPerRewardCycle)
+    %> days
+    Emissions Change: <%=
+        smCalcs.safetyModuleChangedPercent.isGreaterThan(0) ?
+                chalk.greenBright(formatNumber(smCalcs.safetyModuleChangedPercent, 2) + "%") :
+                chalk.redBright(formatNumber(smCalcs.safetyModuleChangedPercent, 2)  + "%")
+    %>
+
+    Current est. apr:  <%= chalk.yellowBright(formatNumber(safetyModuleInfo.emissions.emissionAPR, 2) + "%") %>
+    Proposal est. apr: <%= chalk.yellowBright(formatNumber(smCalcs.newSMEmissionAPR, 2) + "%") %>
+
+    <%= chalk.yellowBright('Current Emissions:') %>
+        <%= emissionTable(config, new BigNumber(safetyModuleInfo.emissions.emissionsPerSecond)) %>
+
+    <%= chalk.yellowBright('Proposed Emissions:') %>
+        <%= emissionTable(config, smCalcs.newSMEmissionsPerSecond) %>

@@ -1,0 +1,9 @@
+<%= chalk.greenBright('MIP Number: ' + chalk.yellowBright(responses.mipNumber)) %>
+
+<%= chalk.greenBright('Global Config:') %>
+    Network: <%=           chalk.yellowBright(config.networkName) %>
+    Submitter: <%=         chalk.yellowBright(responses.name) %>
+    Generator Version: <%= chalk.yellowBright(_meta.generatorVersion) %>
+    Generated At: <%=      chalk.yellowBright(new Date().toUTCString()) %>
+    Network: <%=           chalk.yellowBright(config.networkName) %>
+    Block Height: <%=      chalk.yellowBright(snapshotBlock.toLocaleString()) %>

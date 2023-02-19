@@ -1,36 +1,29 @@
+#!/usr/bin/env node
+
 import fs from "fs";
 import path from "path";
 import {omit, template} from "lodash";
 import {BigNumber} from "bignumber.js";
-import {addProposalToPropData, formatNumber} from "./src/lib";
+import {
+    addProposalToPropData,
+    emissionTable,
+    formatNumber,
+    govRewardSpeeds,
+    loadTemplate, multiEmissionTable,
+    ONE_DAY_IN_SECONDS, ONE_YEAR_IN_DAYS
+} from "./src/lib";
 import {COMPONENT, MARKET_SIDE, MipConfig, NETWORK, REWARD_TYPE} from "./src/types";
 import defaultConfig from "./configs/defaults";
 import {ethers, BigNumber as EthersBigNumber} from "ethers";
+import {generateProposalMarkdown, getMarkdownFunctions} from "./src/markdown";
+
+import chalk from 'chalk'
+import {program} from "commander";
 
 function printIntro(){
     console.log("Welcome to the proposal generator!")
     console.log("This tool reads in a config from the \`generate-config\` tool and produces a proposal and corresponding JSON needed to submit this market adjustment on-chain.")
     console.log()
-}
-
-const ONE_YEAR_IN_DAYS = 365.25
-const ONE_DAY_IN_SECONDS = 60 * 60 * 24
-
-function loadTemplate(templateName: string){
-    return fs.readFileSync(`./templates/${templateName}`, {encoding:'utf8', flag:'r'})
-}
-
-export function  govRewardSpeeds(config: any, emissionsPerSecond: BigNumber){
-    const ONE_DAY = 86400
-    const denoms = ["second", "day", "reward cycle (" + config.daysPerRewardCycle + " days)"]
-    return [
-        formatNumber(emissionsPerSecond, 4),
-        formatNumber(emissionsPerSecond.times(ONE_DAY), 2),
-        formatNumber(emissionsPerSecond.times(ONE_DAY).times(config.daysPerRewardCycle), 2),
-    ].map(
-        (number, index) => {
-            return `\n    - \`${number}\` ${config.govTokenName} / **${denoms[index]}**`
-        }).join('')
 }
 
 // Sanity checks for the config being read in
@@ -102,6 +95,7 @@ async function getDexCalcs(mipConfig: any, govTokenAmountToEmit: number) {
         newDEXEmissionsPerSecond,
         newDEXEmissionAPR,
         dexRewarderChangedPercentString,
+        dexRewarderChangedPercent
     }
 }
 
@@ -135,6 +129,7 @@ async function getSafetyModuleCalcs(mipConfig: any, govTokenAmountToEmit: number
         newSMEmissionsPerSecond,
         newSMEmissionAPR,
         smChangePercentString,
+        safetyModuleChangedPercent
     }
 }
 
@@ -245,10 +240,10 @@ function getMarketDataWithCalcs(
 
         const rendered = marketsMarkdown({
             mTokenAddress, ticker, individualMarketData, marketCalcs,
-            supplyGovChange: formatPercentAsSpan(supplyGovChange),
-            borrowGovChange: formatPercentAsSpan(borrowGovChange),
-            supplyNativeChange: formatPercentAsSpan(supplyNativeChange),
-            borrowNativeChange: formatPercentAsSpan(borrowNativeChange),
+            supplyGovChangeFormatted: formatPercentAsSpan(supplyGovChange),
+            borrowGovChangeFormatted: formatPercentAsSpan(borrowGovChange),
+            supplyNativeChangeFormatted: formatPercentAsSpan(supplyNativeChange),
+            borrowNativeChangeFormatted: formatPercentAsSpan(borrowNativeChange),
             ...globalRenderFunctions, ...mipConfig
         })
 
@@ -258,49 +253,16 @@ function getMarketDataWithCalcs(
             marketNativeTokensToEmit,
             marketCalcs,
             rendered,
+            changes: {
+                supplyGovChange,
+                borrowGovChange,
+                supplyNativeChange,
+                borrowNativeChange,
+            },
             ...individualMarketData
         }
         return acc
     }, {})
-}
-
-function generateProposalMarkdown(
-    mipConfig: any,
-    globalRenderFunctions: any,
-    markdownFunctions: any,
-    smCalcs: any, dexCalcs: any, marketDataWithCalcs: any,
-) {
-    // Strip off "Meta" stuff
-    const configToHash = JSON.stringify(omit(mipConfig, '_meta'), null, 2)
-    const configHash = require('crypto').createHash('sha256').update(configToHash).digest('hex')
-
-    console.log("Config hash:", configHash)
-
-    const proposalContent = [
-        markdownFunctions.introMarkdown(mipConfig),
-        // Safety Module
-        markdownFunctions.safetyModuleMarkdown({ smCalcs, ...globalRenderFunctions, ...mipConfig }),
-
-        // Dex Rewarder
-        markdownFunctions.dexRewarderMarkdown({ dexCalcs, ...globalRenderFunctions, ...mipConfig }),
-
-        // Markets
-        markdownFunctions.marketTopperMarkdown({ ...globalRenderFunctions, ...mipConfig }),
-        Object.values(marketDataWithCalcs).map((marketData: any) => marketData.rendered ).join('\n'),
-
-        // Definitions
-        markdownFunctions.definitionMarkdown(),
-    ]
-
-    let formattedProposal = proposalContent.join('\n') + "\n"
-
-    const rawConfigData = JSON.stringify(mipConfig, null, 2)
-
-    formattedProposal += '---\n'
-    formattedProposal += `Config Hash: \`${configHash}\`\n`
-    formattedProposal += `<details> <summary>Proposal Config</summary> <pre>${rawConfigData}</pre> </details>`
-
-    return formattedProposal
 }
 
 async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs: any, marketDataWithCalcs: any, formattedProposal: string) {
@@ -343,7 +305,7 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
                             .integerValue(BigNumber.ROUND_UP)
                             .plus(1)  // Add a buffer WELL token in case there's some rounding issues
 
-    console.log(`📝 Sending ${SMSendParam.toLocaleString()} WELL to the ECOSYSTEM_RESERVE`)
+    // console.log(`📝 Sending ${SMSendParam.toLocaleString()} WELL to the ECOSYSTEM_RESERVE`)
 
     await addProposalToPropData(govToken, 'transferFrom',
         [
@@ -363,7 +325,7 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     const comptrollerSendParam = new BigNumber(govTokensToEmitToMarkets)
                                     .integerValue(BigNumber.ROUND_UP)
 
-    console.log(`📝 Sending ${comptrollerSendParam.toFixed()} WELL to the COMPTROLLER`)
+    // console.log(`📝 Sending ${comptrollerSendParam.toFixed()} WELL to the COMPTROLLER`)
     await addProposalToPropData(govToken, 'transferFrom',
         [
             config.treasuryAddress,
@@ -382,7 +344,7 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
                                     .integerValue(BigNumber.ROUND_UP)
                                     .plus(2)
 
-    console.log(`📝 Sending ${dexRewarderSendParam.toLocaleString()} WELL to the DEX_REWARDER`)
+    // console.log(`📝 Sending ${dexRewarderSendParam.toLocaleString()} WELL to the DEX_REWARDER`)
     await addProposalToPropData(govToken, 'transferFrom',
         [
             config.treasuryAddress,
@@ -397,7 +359,7 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     )
 
     // Approve dexRewarder to pull WELL from the timelock
-    console.log(`📝 Approving ${dexRewarderSendParam.toLocaleString()} WELL to be pulled by DEX_REWARDER`)
+    // console.log(`📝 Approving ${dexRewarderSendParam.toLocaleString()} WELL to be pulled by DEX_REWARDER`)
     await addProposalToPropData(govToken, 'approve',
         [
             contracts.DEX_REWARDER.address,
@@ -415,17 +377,9 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     //
 
     // Configure dexRewarder/trigger pulling the WELL rewards
-    console.log(`📝 Calling addRewardInfo on DEX_REWARDER`)
+    // console.log(`📝 Calling addRewardInfo on DEX_REWARDER`)
     const currentEndTime = mipConfig.dexInfo.currentPoolRewardInfo.endTimestamp
-    console.log({
-        // endTime: currentEndTime + (ONE_DAY_IN_SECONDS * mipConfig.config.daysPerRewardCycle)
-        eps: dexRewarderSendParam
-            .div(mipConfig.config.daysPerRewardCycle)
-            .div(ONE_DAY_IN_SECONDS)
-            .shiftedBy(18)
-            .integerValue(BigNumber.ROUND_DOWN)
-            .toFixed()
-    })
+
     await addProposalToPropData(dexRewarder, 'addRewardInfo',
         [
             config.dexPoolID,
@@ -449,10 +403,10 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     // Only update if necessary
     const currentSMEmissions = new BigNumber(mipConfig.safetyModuleInfo.emissions.emissionsPerSecond)
     if (currentSMEmissions.isEqualTo(smCalcs.newSMEmissionsPerSecond)){
-        console.log(`⏭️ Skipping adjusting the SAFETY_MODULE`)
+        // console.log(`⏭️ Skipping adjusting the SAFETY_MODULE`)
     } else {
         // Configure new reward speeds for stkWELL
-        console.log(`📝 Calling configureAsset on SAFETY_MODULE`)
+        // console.log(`📝 Calling configureAsset on SAFETY_MODULE`)
         await addProposalToPropData(stkWELL, 'configureAsset',
             [
                 EthersBigNumber.from(
@@ -473,12 +427,7 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
         const marketCalcs = marketData.marketCalcs
 
         // Gov Token emissions for this market
-        console.log(`📝 Adjusting ${config.govTokenName} emissions for the ${marketTicker} market`)
-
-        console.log({marketCalcs: {
-                proposedBorrowGovTokensPerSecond: marketCalcs.proposedBorrowGovTokensPerSecond.toFixed(),
-                proposedSupplyGovTokensPerSecond: marketCalcs.proposedSupplyGovTokensPerSecond.toFixed()
-        }})
+        // console.log(`📝 Adjusting ${config.govTokenName} emissions for the ${marketTicker} market`)
 
         // If we have a 0 for borrow side, make sure it's 1
         let borrowGovTokensPerSecond = marketCalcs.proposedBorrowGovTokensPerSecond
@@ -506,7 +455,7 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
         )
 
         // Native Token emissions for this market
-        console.log(`📝 Adjusting ${config.nativeTokenName} emissions for the ${marketTicker} market`)
+        // console.log(`📝 Adjusting ${config.nativeTokenName} emissions for the ${marketTicker} market`)
 
         // If we have a 0 for borrow side, make sure it's 1
         let borrowNativeTokensPerSecond = marketCalcs.proposedBorrowNativeTokensPerSecond
@@ -537,8 +486,55 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     return proposalData
 }
 
+async function printPropsalSummary(
+    mipConfig: MipConfig,
+    globalRenderFunctions: any,
+    smCalcs: any,
+    dexCalcs: any,
+    marketDataWithCalcs: any
+) {
+    const introMarkdown = template(loadTemplate('intro.md.ejs', 'cli'))
+    const safetyModuleMarkdown = template(loadTemplate('safety-module.md.ejs', 'cli'))
+    const dexRewarderMarkdown = template(loadTemplate('dex-rewarder.md.ejs', 'cli'))
+    const marketTopperMarkdown = template(loadTemplate('market-topper.md.ejs', 'cli'))
+    const marketMarkdown = template(loadTemplate('market.md.ejs', 'cli'))
+
+    // console.log(JSON.stringify({smCalcs}, null, 2))
+
+    const contracts = defaultConfig[mipConfig.config.networkName as NETWORK].contracts
+
+    console.log(`${chalk.bold.greenBright('===== Proposal Info =====')}`)
+
+    console.log()
+
+    // new BigNumber(safetyModuleInfo.emissions.emissionsPerSecond)
+
+    const outputs = [
+        introMarkdown({...mipConfig, ...globalRenderFunctions}),
+        // Safety Module
+        safetyModuleMarkdown({
+            smCalcs,
+            emissionTable, ...globalRenderFunctions, ...mipConfig }),
+        // Dex Rewarder
+        dexRewarderMarkdown({
+            dexCalcs,
+            emissionTable, ...globalRenderFunctions, ...mipConfig }),
+        // Markets
+        marketTopperMarkdown({
+            ...globalRenderFunctions, ...mipConfig }),
+        Object.entries(marketDataWithCalcs).map(([marketTicker, individualMarketData]: any) => {
+            return marketMarkdown({
+                marketTicker, individualMarketData,
+                multiEmissionTable, ...globalRenderFunctions, ...mipConfig,
+            })
+        }).join("\n")
+    ]
+
+    console.log(outputs.join("\n"))
+}
+
 export default async function generateProposal(mipPath: string){
-    const mipPathNormalized = path.resolve(__dirname, mipPath)
+    const mipPathNormalized = path.resolve('./', mipPath)
     if (fs.existsSync(mipPathNormalized)){
         const rawConfigData = fs.readFileSync(mipPathNormalized, {encoding:'utf8', flag:'r'})
         const mipConfig: MipConfig = JSON.parse(rawConfigData)
@@ -549,53 +545,52 @@ export default async function generateProposal(mipPath: string){
 
         const govTokenAmountToEmit = mipConfig.responses.emissionAmounts[REWARD_TYPE.GOV_TOKEN]
         const nativeTokenAmountToEmit = mipConfig.responses.emissionAmounts[REWARD_TYPE.NATIVE_TOKEN]
-        const globalRenderFunctions = { BigNumber, formatNumber, govRewardSpeeds }
+        const globalRenderFunctions = { BigNumber, formatNumber, govRewardSpeeds, chalk }
 
-        // Intro stuff
-        const introMarkdown = template(loadTemplate('intro.md.ejs'))
+        const markdownFunctions = await getMarkdownFunctions(mipConfig)
 
-        // Safety Module stuff
-        const safetyModuleMarkdown = template(loadTemplate('safety-module.md.ejs'))
         const smCalcs = await getSafetyModuleCalcs(mipConfig, govTokenAmountToEmit)
 
-        // Dex rewarder stuff
-        const dexRewarderMarkdown = template(loadTemplate('dex-rewarder.md.ejs'))
         const dexCalcs = await getDexCalcs(mipConfig, govTokenAmountToEmit)
 
-        // Markets stuff
-        const marketTopperMarkdown = template(loadTemplate('market-topper.md.ejs'))
-        const marketsMarkdown = template(loadTemplate('market.md.ejs'))
         const marketDataWithCalcs = getMarketDataWithCalcs(
-            mipConfig, govTokenAmountToEmit, nativeTokenAmountToEmit, marketsMarkdown, globalRenderFunctions
+            mipConfig,
+            govTokenAmountToEmit,
+            nativeTokenAmountToEmit,
+            markdownFunctions.marketsMarkdown,
+            globalRenderFunctions
         )
 
-        // Definitions section
-        const definitionMarkdown = mipConfig.config.networkName === 'Moonbeam' ?
-            template(loadTemplate('definitions.artemis.md.ejs')) :
-            template(loadTemplate('definitions.apollo.md.ejs'))
+        // Strip off "Meta" stuff
+        const configToHash = JSON.stringify(omit(mipConfig, '_meta'), null, 2)
+        const configHash = require('crypto').createHash('sha256').update(configToHash).digest('hex')
+
+        await printPropsalSummary(
+            mipConfig,
+            globalRenderFunctions,
+            smCalcs, dexCalcs, marketDataWithCalcs
+        )
 
         const formattedProposal = generateProposalMarkdown(
-            mipConfig, globalRenderFunctions,
-            {
-                introMarkdown,
-                safetyModuleMarkdown,
-                dexRewarderMarkdown,
-                marketTopperMarkdown,
-                marketsMarkdown,
-                definitionMarkdown,
-            },
-            smCalcs, dexCalcs, marketDataWithCalcs
+            mipConfig,
+            globalRenderFunctions,
+            markdownFunctions,
+            smCalcs, dexCalcs, marketDataWithCalcs,
+            configHash
         )
 
         const proposalJSON = await generateProposalJSON(
             mipConfig, smCalcs, dexCalcs, marketDataWithCalcs, formattedProposal
         )
 
-        console.log("===== PROPOSAL JSON =====")
+        const proposalJSONFormatted = JSON.stringify(proposalJSON, null, 2)
 
-        console.log(JSON.stringify(proposalJSON, null, 2))
+        fs.writeFileSync('proposal-description.md', formattedProposal)
+        fs.writeFileSync('proposal.json', proposalJSONFormatted)
 
-        fs.writeFileSync('proposal-content.md', formattedProposal)
+        console.log()
+        console.log(`All done! Wrote ${chalk.yellowBright('proposal-description.md')} and ${chalk.yellowBright('proposal.json')} to the current directory.`)
+        console.log(`Please submit the ${chalk.yellowBright('proposal.json')} to the governance portal to put it on chain 🎉!`)
 
     } else {
         console.log(`Sorry, ${mipPath} doesn't seem like a path to a MIP config...`)
@@ -605,17 +600,21 @@ export default async function generateProposal(mipPath: string){
 
 if (require.main === module) {
     (async () => {
-        const argv = require('minimist')(process.argv.slice(2));
+        program
+            .name("Moonwell Market Adjuster Proposal Generator")
+            .version(require('./package.json').version, '-v, --vers', 'Print the current version')
 
-        if (argv._.length === 0){
+        program.parse(process.argv)
+
+        if (program.args.length === 0){
             console.log("Please specify the path to a MIP configuration file (usually found in configs/)")
             process.exit(1)
-        } else if (argv._.length > 1){
+        } else if (program.args.length > 1){
             console.log("Please only specify the path to a single MIP configuration file")
             process.exit(1)
         }
 
         await printIntro()
-        await generateProposal(argv._[0])
+        await generateProposal(program.args[0])
     })();
 }
