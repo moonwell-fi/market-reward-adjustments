@@ -2,18 +2,18 @@
   "name": "@moonwell-fi/market-reward-adjuster",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/generate-config.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cmd/generate-config.js",
+  "types": "dist/src/index.d.ts",
   "bin": {
-    "moonwell-config-generator": "dist/generate-config.js",
-    "moonwell-proposal-generator": "dist/generate-proposal.js"
+    "moonwell-config-generator": "dist/cmd/generate-config.js",
+    "moonwell-proposal-generator": "dist/cmd/generate-proposal.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublish": "tsc --build",
     "build": "tsc --build",
-    "postbuild": "cp package.json dist/",
-    "clean": "tsc --build --clean"
+    "clean": "tsc --build --clean",
+    "postbuild": "cp -rv package.json src/abi src/templates dist/"
   },
   "author": "",
   "license": "ISC",

@@ -10,15 +10,15 @@ import {
     formatNumber,
     govRewardSpeeds,
     loadTemplate, multiEmissionTable,
-    ONE_DAY_IN_SECONDS, ONE_YEAR_IN_DAYS
-} from "./src/lib";
-import {COMPONENT, MARKET_SIDE, MipConfig, NETWORK, REWARD_TYPE} from "./src/types";
-import defaultConfig from "./configs/defaults";
+    ONE_DAY_IN_SECONDS, ONE_WEEK_IN_SECONDS, ONE_YEAR_IN_DAYS
+} from "../src/lib";
+import {COMPONENT, MARKET_SIDE, MipConfig, NETWORK, REWARD_TYPE} from "../src/types";
+import defaultConfig from "../src/defaults";
 import {ethers, BigNumber as EthersBigNumber} from "ethers";
-import {generateProposalMarkdown, getMarkdownFunctions} from "./src/markdown";
+import {generateProposalMarkdown, getMarkdownFunctions} from "../src/markdown";
 
 import chalk from 'chalk'
-import {program} from "commander";
+import {OptionValues, program} from "commander";
 
 function printIntro(){
     console.log("Welcome to the proposal generator!")
@@ -27,7 +27,7 @@ function printIntro(){
 }
 
 // Sanity checks for the config being read in
-function doSanityChecks(mipData: any){
+async function doSanityChecks(mipData: any, options: OptionValues){
     // Check component splits equal 100%
     const componentSums = Object.values(mipData.responses.componentSplits).reduce((acc: BigNumber, percent: any) => { return acc.plus(percent) }, new BigNumber(0))
     if (!componentSums.isEqualTo(1)){
@@ -49,6 +49,7 @@ function doSanityChecks(mipData: any){
         throw new Error("Market splits don't equal 1!")
     }
 
+    // Ensure all market splits also total 100%
     Object.entries(mipData.marketData.assets).forEach(([marketTicker, marketData]: [string, any]) => {
         const govSupply = new BigNumber(marketData.govSupplyBorrowSplit[MARKET_SIDE.SUPPLY])
         const govBorrow = new BigNumber(marketData.govSupplyBorrowSplit[MARKET_SIDE.BORROW])
@@ -61,8 +62,19 @@ function doSanityChecks(mipData: any){
         if (!nativeSupply.plus(nativeBorrow).isEqualTo(1)){
             throw new Error(`The native side split on market ${marketTicker} doesn't add up to 1! ${JSON.stringify(marketData.supplyBorrowSplit)}`)
         }
-
     })
+
+    // Ensure that the block used isn't more than a week old
+    const config = defaultConfig[mipData.config.networkName as NETWORK]
+    const provider = new ethers.providers.JsonRpcProvider(config.rpc)
+    const configBlock = await provider.getBlock(mipData.snapshotBlock)
+    const now = new Date().getTime() / 1000
+
+    const timeDelta = new BigNumber(now).minus(configBlock.timestamp)
+    const timeDeltaInDays = timeDelta.div(ONE_DAY_IN_SECONDS)
+    if (timeDelta.isGreaterThan(ONE_WEEK_IN_SECONDS) && !options.oldBlocksAreOk){
+        throw new Error(`The specified block found in the config file (${configBlock.number.toLocaleString()}) is ${timeDeltaInDays.toFixed(2)} days old, which is older than a week!\nThis data is probably too stale to be used in a proposal, please generate a new config file!`)
+    }
 }
 
 async function getDexCalcs(mipConfig: any, govTokenAmountToEmit: number) {
@@ -533,7 +545,7 @@ async function printPropsalSummary(
     console.log(outputs.join("\n"))
 }
 
-export default async function generateProposal(mipPath: string){
+export default async function generateProposal(mipPath: string, options: OptionValues){
     const mipPathNormalized = path.resolve('./', mipPath)
     if (fs.existsSync(mipPathNormalized)){
         const rawConfigData = fs.readFileSync(mipPathNormalized, {encoding:'utf8', flag:'r'})
@@ -541,7 +553,7 @@ export default async function generateProposal(mipPath: string){
 
         // console.log(rawConfigData)
 
-        doSanityChecks(mipConfig)
+        await doSanityChecks(mipConfig, options)
 
         const govTokenAmountToEmit = mipConfig.responses.emissionAmounts[REWARD_TYPE.GOV_TOKEN]
         const nativeTokenAmountToEmit = mipConfig.responses.emissionAmounts[REWARD_TYPE.NATIVE_TOKEN]
@@ -585,12 +597,15 @@ export default async function generateProposal(mipPath: string){
 
         const proposalJSONFormatted = JSON.stringify(proposalJSON, null, 2)
 
-        fs.writeFileSync('proposal-description.md', formattedProposal)
-        fs.writeFileSync('proposal.json', proposalJSONFormatted)
+        const descriptionFile = `MIP-${mipConfig.responses.mipNumber}-description.md`
+        const proposalFile = `MIP-${mipConfig.responses.mipNumber}-proposal.json`
+
+        fs.writeFileSync(descriptionFile, formattedProposal)
+        fs.writeFileSync(proposalFile, proposalJSONFormatted)
 
         console.log()
-        console.log(`All done! Wrote ${chalk.yellowBright('proposal-description.md')} and ${chalk.yellowBright('proposal.json')} to the current directory.`)
-        console.log(`Please submit the ${chalk.yellowBright('proposal.json')} to the governance portal to put it on chain 🎉!`)
+        console.log(`All done! Wrote ${chalk.yellowBright(descriptionFile)} and ${chalk.yellowBright(proposalFile)} to the current directory.`)
+        console.log(`Please submit the ${chalk.yellowBright(proposalFile)} to the governance portal to put it on chain 🎉!`)
 
     } else {
         console.log(`Sorry, ${mipPath} doesn't seem like a path to a MIP config...`)
@@ -602,7 +617,8 @@ if (require.main === module) {
     (async () => {
         program
             .name("Moonwell Market Adjuster Proposal Generator")
-            .version(require('./package.json').version, '-v, --vers', 'Print the current version')
+            .option('--oldBlocksAreOk', "An override to generate a proposal with an old block", false)
+            .version(require('../package.json').version, '-v, --vers', 'Print the current version')
 
         program.parse(process.argv)
 
@@ -615,6 +631,6 @@ if (require.main === module) {
         }
 
         await printIntro()
-        await generateProposal(program.args[0])
+        await generateProposal(program.args[0], program.opts())
     })();
 }

@@ -1,4 +1,4 @@
-import {COMPONENT, DefaultConfig, MARKET_SIDE, NETWORK, REWARD_TYPE} from "../src/types";
+import {COMPONENT, DefaultConfig, MARKET_SIDE, NETWORK, REWARD_TYPE} from "./types";
 import {Contracts} from "@moonwell-fi/moonwell.js";
 import {omit} from "lodash";
 import {BigNumber} from "bignumber.js";
