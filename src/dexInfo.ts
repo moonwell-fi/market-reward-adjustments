@@ -3,13 +3,15 @@ import {ethers} from "ethers";
 import {BigNumber} from "bignumber.js";
 import {formatNumber, ONE_DAY_IN_SECONDS, ONE_YEAR_IN_DAYS} from "./lib";
 import chalk from "chalk";
+import path from "path";
 
 export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethers.providers.JsonRpcProvider, blockTag: ethers.CallOverrides, network: NETWORK) {
     const oracleContract = config.contracts.ORACLE.contract.connect(provider)
     const oraclePrice = await oracleContract.getUnderlyingPrice(config.nativeAsset.mTokenAddress, blockTag)
     const nativePrice = new BigNumber(oraclePrice.toString()).div(1e18)
 
-    const pairContract = new ethers.Contract(config.govTokenUniPoolAddress, require('../src/abi/UniPair.json'), provider);
+    const uniPairABI = path.resolve(__dirname, './abi/UniPair.json')
+    const pairContract = new ethers.Contract(config.govTokenUniPoolAddress, require(uniPairABI), provider);
     let nativeAssetTotal, govTokenTotal
     // Stellaswap and Solarbeam have differnet configs and put the "core" asset in different orders :(
     if (network === NETWORK.MOONBEAM){
