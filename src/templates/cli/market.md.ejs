@@ -8,6 +8,14 @@
         <%= config.govTokenName %> Incentive Share: <%= chalk.yellowBright(formatNumber(new BigNumber(marketData.govRewardSplits[marketTicker]).times(100), 0) + "%") %>
         <%= config.nativeTokenName %> Incentive Share: <%= chalk.yellowBright(formatNumber(new BigNumber(marketData.nativeRewardSplits[marketTicker]).times(100), 0) + "%") %>
 
+        <%= chalk.yellowBright("Estimated APRs") %>
+            Supply:
+                Current: <%= chalk.yellowBright(formatNumber(individualMarketData.marketCalcs.currentSupplyAPRs.totalAPR, 2) + "%") %>
+                Proposed: <%= chalk.yellowBright(formatNumber(individualMarketData.marketCalcs.proposedSupplyAPRs.totalAPR, 2) + "%") %>
+            Borrow:
+                Current: <%= chalk.yellowBright(formatNumber(individualMarketData.marketCalcs.currentBorrowAPRs.totalAPR, 2) + "%") %>
+                Proposed: <%= chalk.yellowBright(formatNumber(individualMarketData.marketCalcs.proposedBorrowAPRs.totalAPR, 2) + "%") %>
+
         <%= chalk.yellowBright(config.govTokenName + " Rewards") %>
             <%= multiEmissionTable(individualMarketData, config, 12).govRewardTable %>
         <%= chalk.yellowBright(config.nativeTokenName + " Rewards") %>

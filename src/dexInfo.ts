@@ -10,10 +10,10 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
     const oraclePrice = await oracleContract.getUnderlyingPrice(config.nativeAsset.mTokenAddress, blockTag)
     const nativePrice = new BigNumber(oraclePrice.toString()).div(1e18)
 
-    const uniPairABI = path.resolve(__dirname, '../abi/UniPair.json')
+    const uniPairABI = path.resolve(__dirname, './abi/UniPair.json')
     const pairContract = new ethers.Contract(config.govTokenUniPoolAddress, require(uniPairABI), provider);
     let nativeAssetTotal, govTokenTotal
-    // Stellaswap and Solarbeam have differnet configs and put the "core" asset in different orders :(
+    // Stellaswap and Solarbeam have different configs and put the "core" asset in different orders :(
     if (network === NETWORK.MOONBEAM){
         let [WELLReserve, GLMRReserve, _blockTimestampLast] = await pairContract.getReserves()
         nativeAssetTotal = new BigNumber(GLMRReserve.toString()).div(1e18)

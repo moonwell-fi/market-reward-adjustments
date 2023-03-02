@@ -11,6 +11,12 @@
 | <%= config.govTokenName %> Incentive Share | **<%= formatNumber(new BigNumber(marketData.govRewardSplits[ticker]).times(100), 0) %>%** |
 | <%= config.nativeTokenName %> Incentive Share | **<%= formatNumber(new BigNumber(marketData.nativeRewardSplits[ticker]).times(100), 0) %>%** |
 
+
+| **Estimated APRs** | Current | Proposed |
+|:-:|:-:        |:-:         |
+| Supply Side | **<%= formatNumber(marketCalcs.currentSupplyAPRs.totalAPR, 2) %>%** | **<%= formatNumber(marketCalcs.proposedSupplyAPRs.totalAPR, 2) %>%** |
+| Borrow Side | **<%= formatNumber(marketCalcs.currentBorrowAPRs.totalAPR, 2) %>%** | **<%= formatNumber(marketCalcs.proposedBorrowAPRs.totalAPR, 2) %>%** |
+
 > #### **<%= config.govTokenName %>** Incentives
 
 | | Current | Proposed |
@@ -36,12 +42,6 @@
 |                                    | **<%= formatNumber(marketCalcs.currentNativeBorrowPerPeriod, 2) %>** <%= config.nativeTokenName %> / cycle\* | **<%= formatNumber(marketCalcs.proposedBorrowNativeTokensPerPeriod, 2) %>** <%= config.nativeTokenName %> / cycle\* |
 
 \* Reward cycle is **<%= config.daysPerRewardCycle %> days** long
-
-Raw Calls:
-```
-COMPTROLLER._setRewardSpeed(0, <%= mTokenAddress %>, <%= marketCalcs.proposedSupplyGovTokensPerSecond.shiftedBy(18).integerValue(BigNumber.ROUND_DOWN) %>, <%= marketCalcs.proposedBorrowGovTokensPerSecond.shiftedBy(18).integerValue(BigNumber.ROUND_DOWN) %>)
-COMPTROLLER._setRewardSpeed(1, <%= mTokenAddress %>, <%= marketCalcs.proposedSupplyNativeTokensPerSecond.shiftedBy(18).integerValue(BigNumber.ROUND_DOWN) %>, <%= marketCalcs.proposedBorrowNativeTokensPerSecond.shiftedBy(18).integerValue(BigNumber.ROUND_DOWN) %>)
-```
 
 ---
 

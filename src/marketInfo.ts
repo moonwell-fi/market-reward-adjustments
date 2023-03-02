@@ -26,7 +26,7 @@ export async function fetchMarketInfo(config: NetworkSpecificConfig, provider: e
 
         const mTokenContract = new ethers.Contract(
             market.mTokenAddress,
-            getDeployArtifact('MErc20Delegator').abi,
+            getDeployArtifact('MToken').abi,
             provider
         )
 
@@ -56,6 +56,9 @@ export async function fetchMarketInfo(config: NetworkSpecificConfig, provider: e
             comptroller.borrowRewardSpeeds(REWARD_TYPE.NATIVE_TOKEN, market.mTokenAddress),
         ])
 
+        const baseSupplyAPR = await mTokenContract.supplyRatePerTimestamp()
+        const baseBorrowAPR = await mTokenContract.borrowRatePerTimestamp()
+
         console.log(`    ${chalk.yellowBright(displayTicker)} Market`)
         console.log(`      Latest Price: ${chalk.greenBright("$" + formatNumber(price))}`)
         console.log(`      Total Supplied: ${chalk.yellowBright(formatNumber(totalSuppliedUnderlying))} ${chalk.yellowBright(displayTicker)} (${chalk.greenBright("$" + formatNumber(totalSuppliedTVL))})`)
@@ -69,6 +72,8 @@ export async function fetchMarketInfo(config: NetworkSpecificConfig, provider: e
             totalBorrows,
             totalBorrowedTVL,
             utilization,
+            baseSupplyAPR: new BigNumber(baseSupplyAPR.toString()),
+            baseBorrowAPR: new BigNumber(baseBorrowAPR.toString()),
             govSupplySpeed: new BigNumber(govSupplySpeed.toString()),
             govBorrowSpeed: new BigNumber(govBorrowSpeed.toString()),
             nativeSupplySpeed: new BigNumber(nativeSupplySpeed.toString()),

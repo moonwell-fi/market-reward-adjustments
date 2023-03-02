@@ -13,7 +13,7 @@ export const ONE_WEEK_IN_SECONDS = ONE_DAY_IN_SECONDS * 7
 export function formatNumber(num: string | BigNumber, truncate: number = 2){
     const bigNum = new BigNumber(num)
     // If we have an asset worth less than 1 dollar and no specified truncation, truncate to 4 digits
-    if (bigNum.isLessThan(1) && truncate === 2){
+    if (bigNum.isGreaterThan(-1) && bigNum.isLessThan(1) && truncate === 2){
         truncate = 4
     }
 
@@ -37,7 +37,7 @@ export async function addProposalToPropData(contract: Contract, fn: string, args
 
 export function loadTemplate(templateName: string, dir = 'markdown'){
     return fs.readFileSync(
-        path.resolve(__dirname, `../templates/${dir}/${templateName}`),
+        path.resolve(__dirname, `./templates/${dir}/${templateName}`),
         {encoding:'utf8', flag:'r'}
     )
 }

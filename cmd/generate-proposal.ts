@@ -145,7 +145,14 @@ async function getSafetyModuleCalcs(mipConfig: any, govTokenAmountToEmit: number
     }
 }
 
-function getMarketCalcs(mipConfig: any, totalGovTokenAmountToEmit: BigNumber, totalNativeTokenAmountToEmit: BigNumber, individualMarketData: any, govRewardSplit: number, nativeRewardSplit: number) {
+function getMarketCalcs(
+    mipConfig: any,
+    totalGovTokenAmountToEmit: BigNumber,
+    totalNativeTokenAmountToEmit: BigNumber,
+    individualMarketData: any,
+    govRewardSplit: number,
+    nativeRewardSplit: number,
+) {
     const govTokensToEmit = totalGovTokenAmountToEmit.times(govRewardSplit)
     const nativeTokensToEmit = totalNativeTokenAmountToEmit.times(nativeRewardSplit)
 
@@ -161,22 +168,80 @@ function getMarketCalcs(mipConfig: any, totalGovTokenAmountToEmit: BigNumber, to
     const proposedSupplyNativeTokensPerSecond = nativeTokensToEmit.times(SUPPLY_PERCENT_NATIVE).div(DAYS_PER_CYCLE).div(ONE_DAY_IN_SECONDS)
     const proposedBorrowNativeTokensPerSecond = nativeTokensToEmit.times(BORROW_PERCENT_NATIVE).div(DAYS_PER_CYCLE).div(ONE_DAY_IN_SECONDS)
 
+    const currentGovSupplyPerSecond = new BigNumber(individualMarketData.govSupplySpeed).div(1e18)
+    const currentGovSupplyPerDay = currentGovSupplyPerSecond.times(ONE_DAY_IN_SECONDS)
+
+    const currentGovBorrowPerSecond = new BigNumber(individualMarketData.govBorrowSpeed).div(1e18)
+    const currentGovBorrowPerDay = currentGovBorrowPerSecond.times(ONE_DAY_IN_SECONDS)
+
+    const currentNativeSupplyPerSecond = new BigNumber(individualMarketData.nativeSupplySpeed).div(1e18)
+    const currentNativeSupplyPerDay = currentNativeSupplyPerSecond.times(ONE_DAY_IN_SECONDS)
+
+    const currentNativeBorrowPerSecond = new BigNumber(individualMarketData.nativeBorrowSpeed).div(1e18)
+    const currentNativeBorrowPerDay = currentNativeBorrowPerSecond.times(ONE_DAY_IN_SECONDS)
+
+    function calculateAPRs(
+        govPrice: number,
+        nativePrice: number,
+        govSupplyPerDay: BigNumber,
+        nativeSupplyPerDay: BigNumber,
+        TVL: BigNumber,
+        baseAPR: BigNumber,
+        supply: boolean,
+    ){
+        const govAPR = new BigNumber(govPrice)
+            .times(govSupplyPerDay)
+            .div(TVL)
+            .times(365)
+            .times(100)
+
+        const nativeAPR = new BigNumber(nativePrice)
+            .times(nativeSupplyPerDay)
+            .div(individualMarketData.totalSuppliedTVL)
+            .times(365)
+            .times(100)
+
+        const protocolAPR = new BigNumber(baseAPR).shiftedBy(-18)
+            .times(ONE_DAY_IN_SECONDS)
+            .plus(1)
+            .pow(365)
+            .minus(1)
+            .times(100)
+
+        const distributionAPR = govAPR.plus(nativeAPR)
+
+        let totalAPR
+        if (supply){
+            totalAPR = distributionAPR.plus(protocolAPR)
+        } else {
+            totalAPR = distributionAPR.minus(protocolAPR)
+        }
+
+        return {
+            govAPR,
+            nativeAPR,
+            protocolAPR,
+            distributionAPR,
+            totalAPR,
+        }
+    }
+
     return {
         // Current stuff
-        currentGovSupplyPerSecond: new BigNumber(individualMarketData.govSupplySpeed).div(1e18),
-        currentGovSupplyPerDay: new BigNumber(individualMarketData.govSupplySpeed).div(1e18).times(ONE_DAY_IN_SECONDS),
-        currentGovSupplyPerPeriod: new BigNumber(individualMarketData.govSupplySpeed).div(1e18).times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
+        currentGovSupplyPerSecond,
+        currentGovSupplyPerDay,
+        currentGovSupplyPerPeriod: currentGovSupplyPerDay.times(DAYS_PER_CYCLE),
 
-        currentGovBorrowPerSecond: new BigNumber(individualMarketData.govBorrowSpeed).div(1e18),
-        currentGovBorrowPerDay: new BigNumber(individualMarketData.govBorrowSpeed).div(1e18).times(ONE_DAY_IN_SECONDS),
-        currentGovBorrowPerPeriod: new BigNumber(individualMarketData.govBorrowSpeed).div(1e18).times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
+        currentGovBorrowPerSecond,
+        currentGovBorrowPerDay,
+        currentGovBorrowPerPeriod: currentGovBorrowPerDay.times(DAYS_PER_CYCLE),
 
-        currentNativeSupplyPerSecond: new BigNumber(individualMarketData.nativeSupplySpeed).div(1e18),
-        currentNativeSupplyPerDay: new BigNumber(individualMarketData.nativeSupplySpeed).div(1e18).times(ONE_DAY_IN_SECONDS),
+        currentNativeSupplyPerSecond,
+        currentNativeSupplyPerDay,
         currentNativeSupplyPerPeriod: new BigNumber(individualMarketData.nativeSupplySpeed).div(1e18).times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
 
-        currentNativeBorrowPerSecond: new BigNumber(individualMarketData.nativeBorrowSpeed).div(1e18),
-        currentNativeBorrowPerDay: new BigNumber(individualMarketData.nativeBorrowSpeed).div(1e18).times(ONE_DAY_IN_SECONDS),
+        currentNativeBorrowPerSecond,
+        currentNativeBorrowPerDay,
         currentNativeBorrowPerPeriod: new BigNumber(individualMarketData.nativeBorrowSpeed).div(1e18).times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
 
         // Proposed stuff
@@ -195,6 +260,46 @@ function getMarketCalcs(mipConfig: any, totalGovTokenAmountToEmit: BigNumber, to
         proposedBorrowNativeTokensPerSecond,
         proposedBorrowNativeTokensPerDay: proposedBorrowNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS),
         proposedBorrowNativeTokensPerPeriod:proposedBorrowNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
+
+        currentSupplyAPRs: calculateAPRs(
+            mipConfig.dexInfo.govTokenPrice,
+            mipConfig.marketData.assets['GLMR'].price,
+            currentGovSupplyPerDay,
+            currentNativeSupplyPerDay,
+            individualMarketData.totalSuppliedTVL,
+            individualMarketData.baseSupplyAPR,
+            true
+        ),
+
+        proposedSupplyAPRs: calculateAPRs(
+            mipConfig.dexInfo.govTokenPrice,
+            mipConfig.marketData.assets['GLMR'].price,
+            proposedSupplyGovTokensPerSecond.times(ONE_DAY_IN_SECONDS),
+            proposedSupplyNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS),
+            individualMarketData.totalSuppliedTVL,
+            individualMarketData.baseSupplyAPR,
+            true
+        ),
+
+        currentBorrowAPRs: calculateAPRs(
+            mipConfig.dexInfo.govTokenPrice,
+            mipConfig.marketData.assets['GLMR'].price,
+            currentGovBorrowPerDay,
+            currentNativeBorrowPerDay,
+            individualMarketData.totalBorrowedTVL,
+            individualMarketData.baseBorrowAPR,
+            false
+        ),
+
+        proposedBorrowAPRs: calculateAPRs(
+            mipConfig.dexInfo.govTokenPrice,
+            mipConfig.marketData.assets['GLMR'].price,
+            proposedBorrowGovTokensPerSecond.times(ONE_DAY_IN_SECONDS),
+            proposedBorrowNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS),
+            individualMarketData.totalBorrowedTVL,
+            individualMarketData.baseBorrowAPR,
+            false
+        )
     }
 }
 
@@ -221,8 +326,6 @@ function getMarketDataWithCalcs(
         const marketGovTokensToEmit = new BigNumber(govTokenAmountToEmit).times(marketSplit)
         // Native tokens don't get split into anything else
         const marketNativeTokensToEmit = new BigNumber(nativeTokenAmountToEmit)
-
-        // console.log('hmm', mipConfig.marketData)
 
         const marketCalcs = getMarketCalcs(
             mipConfig,
@@ -519,8 +622,6 @@ async function printPropsalSummary(
 
     console.log()
 
-    // new BigNumber(safetyModuleInfo.emissions.emissionsPerSecond)
-
     const outputs = [
         introMarkdown({...mipConfig, ...globalRenderFunctions}),
         // Safety Module
@@ -570,7 +671,7 @@ export default async function generateProposal(mipPath: string, options: OptionV
             govTokenAmountToEmit,
             nativeTokenAmountToEmit,
             markdownFunctions.marketsMarkdown,
-            globalRenderFunctions
+            globalRenderFunctions,
         )
 
         // Strip off "Meta" stuff
