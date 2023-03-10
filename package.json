@@ -13,7 +13,8 @@
     "prepublish": "tsc --build",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
-    "postbuild": "cp -rv package.json dist/ && cp -rv src/abi/ src/templates/ dist/src/"
+    "postbuild": "cp -rv package.json dist/ && cp -rv src/abi/ src/templates/ dist/src/",
+    "postinstall": "patch-package"
   },
   "author": "",
   "license": "ISC",
