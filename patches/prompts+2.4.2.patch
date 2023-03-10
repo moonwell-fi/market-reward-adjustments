@@ -1,0 +1,95 @@
+diff --git a/node_modules/prompts/lib/elements/number.js b/node_modules/prompts/lib/elements/number.js
+index dc3efe9..370de7e 100644
+--- a/node_modules/prompts/lib/elements/number.js
++++ b/node_modules/prompts/lib/elements/number.js
+@@ -21,6 +21,7 @@ const round = (number, precision) => {
+  * @param {Boolean} [opts.float=false] Parse input as floats
+  * @param {Number} [opts.round=2] Round floats to x decimals
+  * @param {Number} [opts.increment=1] Number to increment by when using arrow-keys
++ * @param {Number} [opts.resetDelay=0] Milliseconds until input is automatically reset
+  * @param {Function} [opts.validate] Validate function
+  * @param {Stream} [opts.stdin] The Readable stream to listen to
+  * @param {Stream} [opts.stdout] The Writable stream to write readline data to
+@@ -42,7 +43,8 @@ class NumberPrompt extends Prompt {
+     this.color = `cyan`;
+     this.value = ``;
+     this.typed = ``;
+-    this.lastHit = 0;
++    this.resetDelay = opts.resetDelay || 0;
++    this.resetTimer = 0;
+     this.render();
+   }
+ 
+@@ -55,7 +57,21 @@ class NumberPrompt extends Prompt {
+       this.placeholder = false;
+       this.rendered = this.transform.render(`${round(v, this.round)}`);
+       this._value = round(v, this.round);
++      
++      if (this.resetDelay > 0) {
++        clearTimeout(this.resetTimer);
++        this.resetTimer = setTimeout(() => {
++          const color = this.color;
++          this.color = `inverse`;
++          this.render();
++          setTimeout(() => {
++            this.color = color;
++            this.reset();
++          }, 200);
++        }, this.resetDelay);
++      }
+     }
++    this.typed = this._value;
+     this.fire();
+   }
+ 
+@@ -87,6 +103,7 @@ class NumberPrompt extends Prompt {
+     this.value = x !== `` ? x : this.initial;
+     this.done = this.aborted = true;
+     this.error = false;
++    clearTimeout(this.resetTimer);
+     this.fire();
+     this.render();
+     this.out.write(`\n`);
+@@ -115,6 +132,7 @@ class NumberPrompt extends Prompt {
+     this.done = true;
+     this.aborted = false;
+     this.error = false;
++    clearTimeout(this.resetTimer);
+     this.fire();
+     this.render();
+     this.out.write(`\n`);
+@@ -166,10 +184,7 @@ class NumberPrompt extends Prompt {
+   _(c, key) {
+     if (!this.valid(c)) return this.bell();
+ 
+-    const now = Date.now();
+-    if (now - this.lastHit > 1000) this.typed = ``; // 1s elapsed
+     this.typed += c;
+-    this.lastHit = now;
+     this.color = `cyan`;
+ 
+     if (c === `.`) return this.fire();
+diff --git a/node_modules/prompts/lib/prompts.js b/node_modules/prompts/lib/prompts.js
+index 9f62556..03461d5 100644
+--- a/node_modules/prompts/lib/prompts.js
++++ b/node_modules/prompts/lib/prompts.js
+@@ -70,6 +70,7 @@ $.invisible = args => {
+  * @param {Boolean} [opts.float=false] Parse input as floats
+  * @param {Number} [opts.round=2] Round floats to x decimals
+  * @param {Number} [opts.increment=1] Number to increment by when using arrow-keys
++ * @param {Number} [opts.resetDelay=0] Milliseconds until input is automatically reset
+  * @param {function} [args.validate] Function to validate user input
+  * @param {Stream} [args.stdin] The Readable stream to listen to
+  * @param {Stream} [args.stdout] The Writable stream to write readline data to
+diff --git a/node_modules/prompts/readme.md b/node_modules/prompts/readme.md
+index 4a8b065..3f68de5 100755
+--- a/node_modules/prompts/readme.md
++++ b/node_modules/prompts/readme.md
+@@ -571,6 +571,7 @@ You can type in numbers and use <kbd>up</kbd>/<kbd>down</kbd> to increase/decrea
+ | float | `boolean` | Allow floating point inputs. Defaults to `false` |
+ | round | `number` | Round `float` values to x decimals. Defaults to `2` |
+ | increment | `number` | Increment step when using <kbd>arrow</kbd> keys. Defaults to `1` |
++| resetDelay | `number` | Milliseconds to wait before the input is automatically reset. Defaults to `0` (disabled)
+ | style | `string` | Render style (`default`, `password`, `invisible`, `emoji`). Defaults to `default` |
+ | onRender | `function` | On render callback. Keyword `this` refers to the current prompt |
+ | onState | `function` | On state change callback. Function signature is an `object` with two properties: `value` and `aborted` |
