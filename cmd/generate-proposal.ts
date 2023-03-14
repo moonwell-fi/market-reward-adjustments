@@ -145,6 +145,14 @@ async function getSafetyModuleCalcs(mipConfig: any, govTokenAmountToEmit: number
     }
 }
 
+function getNativeAssetPrice(mipConfig: MipConfig) {
+    if (mipConfig.responses.network === NETWORK.MOONBEAM){
+        return mipConfig.marketData.assets['GLMR'].price
+    } else {
+        return mipConfig.marketData.assets['MOVR'].price
+    }
+}
+
 function getMarketCalcs(
     mipConfig: any,
     totalGovTokenAmountToEmit: BigNumber,
@@ -182,7 +190,7 @@ function getMarketCalcs(
 
     function calculateAPRs(
         govPrice: number,
-        nativePrice: number,
+        nativePrice: number | string,
         govSupplyPerDay: BigNumber,
         nativeSupplyPerDay: BigNumber,
         TVL: BigNumber,
@@ -263,7 +271,7 @@ function getMarketCalcs(
 
         currentSupplyAPRs: calculateAPRs(
             mipConfig.dexInfo.govTokenPrice,
-            mipConfig.marketData.assets['GLMR'].price,
+            getNativeAssetPrice(mipConfig),
             currentGovSupplyPerDay,
             currentNativeSupplyPerDay,
             individualMarketData.totalSuppliedTVL,
@@ -273,7 +281,7 @@ function getMarketCalcs(
 
         proposedSupplyAPRs: calculateAPRs(
             mipConfig.dexInfo.govTokenPrice,
-            mipConfig.marketData.assets['GLMR'].price,
+            getNativeAssetPrice(mipConfig),
             proposedSupplyGovTokensPerSecond.times(ONE_DAY_IN_SECONDS),
             proposedSupplyNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS),
             individualMarketData.totalSuppliedTVL,
@@ -283,7 +291,7 @@ function getMarketCalcs(
 
         currentBorrowAPRs: calculateAPRs(
             mipConfig.dexInfo.govTokenPrice,
-            mipConfig.marketData.assets['GLMR'].price,
+            getNativeAssetPrice(mipConfig),
             currentGovBorrowPerDay,
             currentNativeBorrowPerDay,
             individualMarketData.totalBorrowedTVL,
@@ -293,7 +301,7 @@ function getMarketCalcs(
 
         proposedBorrowAPRs: calculateAPRs(
             mipConfig.dexInfo.govTokenPrice,
-            mipConfig.marketData.assets['GLMR'].price,
+            getNativeAssetPrice(mipConfig),
             proposedBorrowGovTokensPerSecond.times(ONE_DAY_IN_SECONDS),
             proposedBorrowNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS),
             individualMarketData.totalBorrowedTVL,
