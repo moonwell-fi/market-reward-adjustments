@@ -48,3 +48,16 @@ print out a summary of the proposal/adjustments, and write out the following fil
 - `MIP-xxx-description.md` - The markdown of the proposal itself
 - `MIP-xxx-proposal.json` - The proposal JSON *with the markdown embedded in it* which should be submitted to the gov portal.
 
+# Grant specific information
+
+The Moonbeam Foundation has generously awarded a grant to the Moonwell Artemis community with the following details:
+- 2,179,306.295 GLMR remaining
+- Last updated 02-2023 to award 500,000 GLMR from 2/23/2023 - 3/23/2023
+- If 544,826.57375 were emitted per 4 weeks, this would cover 3/23-4/20, 4/20-5/18, 5/18-6/15, and 6/15-7/13.
+
+The Moonbeam Foundation has generously awarded a grant to the Moonwell Apollo community with the following details:
+- 9,926 MOVR remaining - this should cover 3/23/2023 to 4/20/2023
+- Last updated 02-2023 to award 9,926 MOVR from 2/23/2023 - 3/23/2023
+- Additional 19,852 MOVR to be sent by Moonbeam Foundation in the future - to cover 4/20-5/18 and 5/18-6/15 
+
+When submitting a reward speed proposal for governance, please create a pull request that updates this file to include information about how much grant funds have been awarded, so that future proposal creators will know how much grant funding there is remaining and how much they can safely award without creating reward indexes that are not able to be delivered by the protocol.

@@ -27,21 +27,25 @@ const defaultConfig: DefaultConfig = {
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
         defaultSplits: {
-            [COMPONENT.ALL_MARKETS]: 0.28,
-            [COMPONENT.SAFETY_MODULE]: 0.23,
-            [COMPONENT.DEX_REWARDER]: 0.49,
+            [COMPONENT.ALL_MARKETS]: 0.30,
+            [COMPONENT.SAFETY_MODULE]: 0.33,
+            [COMPONENT.DEX_REWARDER]: 0.37,
         },
 
         // The default grant sizes, denominated in underlying tokens as whole numbers (no mantissa)
         defaultGrantAmounts: {
-            [REWARD_TYPE.GOV_TOKEN]: 28_000_000,    // MFAM
+            [REWARD_TYPE.GOV_TOKEN]: new BigNumber(186_912_704) // 186,912,704 in total remaining
+                                            .div(48) // 48 weeks left in the year
+                                            .times(4) // 4 weeks per reward cycle
+                                            .integerValue(BigNumber.ROUND_DOWN)
+                                            .toNumber(), // MFAM
             [REWARD_TYPE.NATIVE_TOKEN]: 9_926, // MOVR
         },
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
         defaultBorrowSupplySplit: {
-            [MARKET_SIDE.SUPPLY]: 0.30,
-            [MARKET_SIDE.BORROW]: 0.70,
+            [MARKET_SIDE.SUPPLY]: 1,
+            [MARKET_SIDE.BORROW]: 0,
         },
 
         toJSON(){
@@ -67,9 +71,9 @@ const defaultConfig: DefaultConfig = {
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
         defaultSplits: {
-            [COMPONENT.ALL_MARKETS]: 0.33,
-            [COMPONENT.SAFETY_MODULE]: 0.42,
-            [COMPONENT.DEX_REWARDER]: 0.25,
+            [COMPONENT.ALL_MARKETS]: 0.35,
+            [COMPONENT.SAFETY_MODULE]: 0.45,
+            [COMPONENT.DEX_REWARDER]: 0.20,
         },
 
         // The default grant sizes, denominated in underlying tokens as whole numbers (no mantissa)
