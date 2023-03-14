@@ -34,6 +34,9 @@ const defaultConfig: DefaultConfig = {
 
         // The default grant sizes, denominated in underlying tokens as whole numbers (no mantissa)
         defaultGrantAmounts: {
+            // 50% of MFAM supply or 500M MFAM emitted over 2 years since 2/23/2022
+            // ~186,912,704 MFAM remaining to be emitted as of 3/14/2023
+            // There are 48 weeks remaining in the 2nd year from 2/23/2023 to 2/23/2024
             [REWARD_TYPE.GOV_TOKEN]: new BigNumber(186_912_704) // 186,912,704 in total remaining
                                             .div(48) // 48 weeks left in the year
                                             .times(4) // 4 weeks per reward cycle

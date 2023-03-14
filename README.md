@@ -58,6 +58,6 @@ The Moonbeam Foundation has generously awarded a grant to the Moonwell Artemis c
 The Moonbeam Foundation has generously awarded a grant to the Moonwell Apollo community with the following details:
 - 9,926 MOVR remaining - this should cover 3/23/2023 to 4/20/2023
 - Last updated 02-2023 to award 9,926 MOVR from 2/23/2023 - 3/23/2023
-- Additional 19,852 MOVR to be sent by Moonbeam Foundation in the future - to cover 4/20-5/18 and 5/18-6/15 
+- Additional 19,852 MOVR to be sent by Moonbeam Foundation in the future - to cover 4/20-5/18 and 5/18-6/15
 
-When submitting a reward speed proposal for governance, please create a pull request that updates this file to include information about how much grant funds have been awarded, so that future proposal creators will know how much grant funding there is remaining and how much they can safely award without creating reward indexes that are not able to be delivered by the protocol.
+When submitting a reward speed proposal for governance, please update the [Grants Project](https://github.com/orgs/moonwell-fi/projects/2/views/1) and mark the grant as reduced by the amount awarded.
