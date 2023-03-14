@@ -1,6 +1,6 @@
 {
   "name": "@moonwell-fi/market-reward-adjuster",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "",
   "main": "dist/cmd/generate-config.js",
   "types": "dist/src/index.d.ts",
@@ -14,7 +14,8 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "postbuild": "cp -rv package.json dist/ && cp -rv src/abi/ src/templates/ dist/src/",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "bump-version": "npm version patch --git-tag-version false"
   },
   "author": "",
   "license": "ISC",
