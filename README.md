@@ -53,7 +53,7 @@ print out a summary of the proposal/adjustments, and write out the following fil
 The Moonbeam Foundation has generously awarded a grant to the Moonwell Artemis community with the following details:
 - 2,179,306.295 GLMR remaining
 - Last updated 02-2023 to award 500,000 GLMR from 2/23/2023 - 3/23/2023
-- If 544,826.57375 were emitted per 4 weeks, this would cover 3/23-4/20, 4/20-5/18, 5/18-6/15, and 6/15-7/13.
+- If 435,861.259 were emitted per 4 weeks, this would cover 3/23-4/20, 4/20-5/18, 5/18-6/15, 6/15-7/13, and 7/13-8/10.
 
 The Moonbeam Foundation has generously awarded a grant to the Moonwell Apollo community with the following details:
 - 9,926 MOVR remaining - this should cover 3/23/2023 to 4/20/2023
