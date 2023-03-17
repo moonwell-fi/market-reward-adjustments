@@ -1,0 +1,237 @@
+{
+  "_meta": {
+    "generatedAt": "2023-03-17T00:31:18.194Z",
+    "generatorVersion": "1.0.8"
+  },
+  "snapshotBlock": 3155037,
+  "safetyModuleInfo": {
+    "totalStaked": "167788887.501163781526108424",
+    "stakedTVL": "1803573.8803637529382591358251022352150596007190445312",
+    "govTokenPrice": "0.0107490663250940463709021088",
+    "emissions": {
+      "emissionsPerSecond": "2.50400625",
+      "lastUpdateTimestamp": 1679012880,
+      "emissionAPR": "47.095149632273421772",
+      "emissionsPerYear": "79020427.635"
+    }
+  },
+  "dexInfo": {
+    "govTokenTotal": "29363130.411379663013883227",
+    "nativeAssetTotal": "789625.395685035977107613",
+    "govTokenPrice": "0.0107490663250940463709021088",
+    "nextFreeSlot": 10,
+    "emissionsPerYear": "52680288.461538561336",
+    "poolTVL": "631252.4726086120566865528282714229662490945712490976",
+    "currentPoolAPR": "89.704823231521575361",
+    "currentPoolRewardInfo": {
+      "startTimestamp": 1674790200,
+      "endTimestamp": 1677209400,
+      "rewardPerSec": "1.66933760683761"
+    }
+  },
+  "marketData": {
+    "assets": {
+      "GLMR": {
+        "price": "0.39971642",
+        "totalSuppliedUnderlying": "23822846.449749014037954706926072454630258242",
+        "totalSuppliedTVL": "9522382.89710338578978099957463888622541924816773364",
+        "totalBorrows": "10318027.120432944674013503",
+        "totalBorrowedTVL": "4124284.86204236549515474445081926",
+        "utilization": "0.43311478929259733385",
+        "baseSupplyAPR": "652138932",
+        "baseBorrowAPR": "2007593826",
+        "govSupplySpeed": "472184035714285714",
+        "govBorrowSpeed": "1",
+        "nativeSupplySpeed": "49603174603174603",
+        "nativeBorrowSpeed": "1",
+        "nativeSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        },
+        "govSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        }
+      },
+      "xcDOT": {
+        "price": "6.07056995",
+        "totalSuppliedUnderlying": "1066012.6658126293995723317440476747",
+        "totalSuppliedTVL": "6471304.455401540363530339936846905401195265",
+        "totalBorrows": "715531.3457581658",
+        "totalBorrowedTVL": "4343683.08584258127259771",
+        "utilization": "0.67122218028498838019",
+        "baseSupplyAPR": "1390752594",
+        "baseBorrowAPR": "2762627409",
+        "govSupplySpeed": "393486696428571428",
+        "govBorrowSpeed": "1",
+        "nativeSupplySpeed": "41335978835978835",
+        "nativeBorrowSpeed": "1",
+        "nativeSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        },
+        "govSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        }
+      },
+      "xcUSDT": {
+        "price": "1.00239",
+        "totalSuppliedUnderlying": "1068228.298447998205137471788118",
+        "totalSuppliedTVL": "1070781.36408128892084775034569160202",
+        "totalBorrows": "364263.938653",
+        "totalBorrowedTVL": "365134.52946638067",
+        "utilization": "0.34099821094632096475",
+        "baseSupplyAPR": "497233347",
+        "baseBorrowAPR": "1715494072",
+        "govSupplySpeed": "78697339285714285",
+        "govBorrowSpeed": "1",
+        "nativeSupplySpeed": "8267195767195767",
+        "nativeBorrowSpeed": "1",
+        "nativeSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        },
+        "govSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        }
+      },
+      "FRAX": {
+        "price": "0.99929637",
+        "totalSuppliedUnderlying": "5678482.982987888171706935981307450977465088",
+        "totalSuppliedTVL": "5674487.43200656840395267782994292361573381424013056",
+        "totalBorrows": "4082374.924228264225468838",
+        "totalBorrowedTVL": "4079502.44276032949191187136151806",
+        "utilization": "0.71891998909895679456",
+        "baseSupplyAPR": "1780617249",
+        "baseBorrowAPR": "2913876169",
+        "govSupplySpeed": "354138026785714285",
+        "govBorrowSpeed": "1",
+        "nativeSupplySpeed": "37202380952380952",
+        "nativeBorrowSpeed": "1",
+        "nativeSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        },
+        "govSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        }
+      },
+      "ETH.wh": {
+        "price": "1674.61617404",
+        "totalSuppliedUnderlying": "2320.58762573274513978099999835798688558",
+        "totalSuppliedTVL": "3886093.5713291371175264632207354982806064748463432",
+        "totalBorrows": "696.302162627624171521",
+        "totalBorrowedTVL": "1166038.86355524986332752174751484",
+        "utilization": "0.30005424268681122676",
+        "baseSupplyAPR": "356838367",
+        "baseBorrowAPR": "1585661600",
+        "govSupplySpeed": "196743348214285714",
+        "govBorrowSpeed": "1",
+        "nativeSupplySpeed": "20667989417989417",
+        "nativeBorrowSpeed": "1",
+        "nativeSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        },
+        "govSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        }
+      },
+      "BTC.wh": {
+        "price": "25019.79475317",
+        "totalSuppliedUnderlying": "93.81518932999999859331958344",
+        "totalSuppliedTVL": "2347236.7817663841324812446943651220195048",
+        "totalBorrows": "59.33385809",
+        "totalBorrowedTVL": "1484520.9513255153576453",
+        "utilization": "0.63245470710814159895",
+        "baseSupplyAPR": "1252116384",
+        "baseBorrowAPR": "2639696558",
+        "govSupplySpeed": "275440687500000000",
+        "govBorrowSpeed": "1",
+        "nativeSupplySpeed": "28935185185185185",
+        "nativeBorrowSpeed": "1",
+        "nativeSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        },
+        "govSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        }
+      },
+      "USDC.wh": {
+        "price": "0.99968278",
+        "totalSuppliedUnderlying": "3208223.608554992409489760751728",
+        "totalSuppliedTVL": "3207205.89586188659479762240982233684384",
+        "totalBorrows": "884182.857868",
+        "totalBorrowedTVL": "883902.37738182711304",
+        "utilization": "0.27559888765554047045",
+        "baseSupplyAPR": "353289401",
+        "baseBorrowAPR": "1508114178",
+        "govSupplySpeed": "196743348214285714",
+        "govBorrowSpeed": "1",
+        "nativeSupplySpeed": "20667989417989417",
+        "nativeBorrowSpeed": "1",
+        "nativeSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        },
+        "govSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        }
+      }
+    },
+    "totalTVL": "32179492.3975501913229170980120432744062996022542074",
+    "govRewardSplits": {
+      "GLMR": 0.29,
+      "xcDOT": 0.2,
+      "xcUSDT": 0.04,
+      "FRAX": 0.17,
+      "ETH.wh": 0.12,
+      "BTC.wh": 0.08,
+      "USDC.wh": 0.1
+    },
+    "nativeRewardSplits": {
+      "GLMR": 0.29,
+      "xcDOT": 0.2,
+      "xcUSDT": 0.04,
+      "FRAX": 0.17,
+      "ETH.wh": 0.12,
+      "BTC.wh": 0.08,
+      "USDC.wh": 0.1
+    }
+  },
+  "config": {
+    "daysPerRewardCycle": 28,
+    "rpc": "https://rpc.api.moonbeam.network",
+    "govTokenName": "WELL",
+    "nativeTokenName": "GLMR",
+    "networkName": "Moonbeam",
+    "govTokenUniPoolAddress": "0xb536c1f9a157b263b70a9a35705168acc0271742",
+    "dexName": "StellaSwap",
+    "ecosystemReserve": "0x7793E08Eb4525309C46C9BA394cE33361A167ba4",
+    "treasuryAddress": "0x6972f25AB3FC425EaF719721f0EBD1Cdb58eE451",
+    "dexPoolID": 15,
+    "submissionRewardAmount": 100000
+  },
+  "responses": {
+    "name": "not-taco",
+    "network": "Moonbeam",
+    "mipNumber": 36,
+    "componentSplits": {
+      "ALL_MARKETS": 0.35,
+      "SAFETY_MODULE": 0.45,
+      "DEX_REWARDER": 0.2
+    },
+    "emissionAmounts": {
+      "0": 14423076,
+      "1": 435861
+    },
+    "submitterWallet": "0x7e4a3edd2F6C516166b4C615884b69B7dbfF3fE5"
+  }
+}
