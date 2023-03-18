@@ -31,7 +31,7 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
 
     let currentPoolRewardInfo, nextFreeSlot, currentConfig
     if (network === NETWORK.MOONBEAM){
-        nextFreeSlot = poolInfo.allocPoint.plus(1).toNumber()
+        nextFreeSlot = poolInfo.allocPoint.add(1).toNumber()
         currentConfig = await config.contracts.DEX_REWARDER.contract.connect(provider).poolRewardInfo(config.dexPoolID, poolInfo.allocPoint)
 
     } else if (network === NETWORK.MOONRIVER){
