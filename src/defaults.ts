@@ -88,7 +88,7 @@ const defaultConfig: DefaultConfig = {
                                         .times(28)
                                         .integerValue(BigNumber.ROUND_DOWN)
                                         .toNumber(),
-            [REWARD_TYPE.NATIVE_TOKEN]: 500_000, // GLMR
+            [REWARD_TYPE.NATIVE_TOKEN]: 435_861, // GLMR, based on Moonbeam Ignite grant remaining
         },
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
