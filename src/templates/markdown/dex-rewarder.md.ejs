@@ -5,6 +5,8 @@ This proposal, if executed, would adjust the rewards on the **Dex Rewarder** <%=
 
 Current rewards will expire at **<%= new Date(dexInfo.currentPoolRewardInfo.endTimestamp * 1000).toUTCString() %>**
 
+Proposed rewards will expire at **<%= new Date(dexCalcs.newDEXEndTimestamp * 1000).toUTCString() %>**
+
 - Current (estimated APR = `~<%= formatNumber(dexInfo.currentPoolAPR, 2) %>%`) days: <%= govRewardSpeeds(config, new BigNumber(dexInfo.currentPoolRewardInfo.rewardPerSec)) %>
 <br><br>
 - Proposed (estimated APR = `~<%= formatNumber(dexCalcs.newDEXEmissionAPR, 2) %>%`): <%= govRewardSpeeds(config, dexCalcs.newDEXEmissionsPerSecond) %>

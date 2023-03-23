@@ -80,6 +80,7 @@ async function doSanityChecks(mipData: any, options: OptionValues){
 async function getDexCalcs(mipConfig: any, govTokenAmountToEmit: number) {
     const dexSplitPercentage = mipConfig.responses.componentSplits[COMPONENT.DEX_REWARDER]
     const dexTokensToEmit = new BigNumber(govTokenAmountToEmit).times(dexSplitPercentage)
+    const currentEndTime = mipConfig.dexInfo.currentPoolRewardInfo.endTimestamp
 
     const newDEXEmissionsPerSecond = dexTokensToEmit.dividedBy(ONE_DAY_IN_SECONDS * mipConfig.config.daysPerRewardCycle)
     const newDEXEmissionsPerYear = newDEXEmissionsPerSecond.times(ONE_DAY_IN_SECONDS).times(ONE_YEAR_IN_DAYS)
@@ -92,6 +93,7 @@ async function getDexCalcs(mipConfig: any, govTokenAmountToEmit: number) {
         .div(mipConfig.dexInfo.emissionsPerYear)
         .minus(1)
         .times(100)
+    const newDEXEndTimestamp = currentEndTime + (ONE_DAY_IN_SECONDS * mipConfig.config.daysPerRewardCycle)
 
     let dexRewarderChangedPercentString
     if (dexRewarderChangedPercent.integerValue().isGreaterThan(0)){
@@ -106,6 +108,7 @@ async function getDexCalcs(mipConfig: any, govTokenAmountToEmit: number) {
         dexTokensToEmit,
         newDEXEmissionsPerSecond,
         newDEXEmissionAPR,
+        newDEXEndTimestamp,
         dexRewarderChangedPercentString,
         dexRewarderChangedPercent
     }
@@ -506,7 +509,7 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     await addProposalToPropData(dexRewarder, 'addRewardInfo',
         [
             config.dexPoolID,
-            currentEndTime + (ONE_DAY_IN_SECONDS * mipConfig.config.daysPerRewardCycle),
+            dexCalcs.newDEXEndTimestamp,
             EthersBigNumber.from(
                 dexRewarderSendParam
                     .div(mipConfig.config.daysPerRewardCycle)
