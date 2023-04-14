@@ -14,7 +14,7 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
     const pairContract = new ethers.Contract(config.govTokenUniPoolAddress, require(uniPairABI), provider);
     let nativeAssetTotal, govTokenTotal
     // Stellaswap and Solarbeam have different configs and put the "core" asset in different orders :(
-    if (network === NETWORK.MOONBEAM){
+    if (network === NETWORK.MOONBEAM) {
         let [WELLReserve, GLMRReserve, _blockTimestampLast] = await pairContract.getReserves()
         nativeAssetTotal = new BigNumber(GLMRReserve.toString()).div(1e18)
         govTokenTotal = new BigNumber(WELLReserve.toString()).div(1e18)
@@ -27,29 +27,28 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
     }
     const govTokenPrice = nativeAssetTotal.div(govTokenTotal).times(nativePrice)
 
-    const poolInfo = await config.contracts.DEX_REWARDER.contract.connect(provider).poolInfo(config.dexPoolID)
-
     let currentPoolRewardInfo, nextFreeSlot, currentConfig
-    if (network === NETWORK.MOONBEAM){
-        nextFreeSlot = poolInfo.allocPoint.add(1).toNumber()
-        currentConfig = await config.contracts.DEX_REWARDER.contract.connect(provider).poolRewardInfo(config.dexPoolID, poolInfo.allocPoint)
 
-    } else if (network === NETWORK.MOONRIVER){
-        // Go search for the next reward slot
-        nextFreeSlot = 20
-        for (;;){
-            try {
-                currentConfig = await config.contracts.DEX_REWARDER.contract.connect(provider).poolRewardInfo(config.dexPoolID, nextFreeSlot + 1)
-                nextFreeSlot += 1
-            } catch (e){
-                // Increment one more time to the next empty slot
-                nextFreeSlot += 1
-                break
-            }
-        }
-
+    if (network === NETWORK.MOONBEAM) {
+        // Start enumerating from slot 10
+        nextFreeSlot = 10
+    } else if (network === NETWORK.MOONRIVER) {
+        // Start enumerating from slot 25
+        nextFreeSlot = 25
     } else {
         throw new Error("Unknown network " + network)
+    }
+
+    // Go enumerate the next free slot
+    for (;;) {
+        try {
+            currentConfig = await config.contracts.DEX_REWARDER.contract.connect(provider).poolRewardInfo(config.dexPoolID, nextFreeSlot + 1)
+            nextFreeSlot += 1
+        } catch (e) {
+            // Increment one more time to the next empty slot
+            nextFreeSlot += 1
+            break
+        }
     }
 
     currentPoolRewardInfo = {
@@ -74,6 +73,10 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
     console.log(`    ${config.nativeTokenName} Side: ${chalk.yellowBright(formatNumber(nativeAssetTotal) + " " + config.nativeTokenName)}`)
     console.log(`    ${config.govTokenName} Price: ${chalk.greenBright('$' + formatNumber(govTokenPrice, 6))}`)
     console.log(`    LP TVL: ${chalk.greenBright("$" + formatNumber(poolTVL))}`)
+    console.log(`    Next Slot Open: ${chalk.yellowBright(nextFreeSlot)}`)
+    console.log(`    Current Pool Config Start: ${chalk.yellowBright(new Date(currentPoolRewardInfo.startTimestamp * 1000).toISOString())}`)
+    console.log(`    Current Pool Config End: ${chalk.yellowBright(new Date(currentPoolRewardInfo.endTimestamp * 1000).toISOString())}`)
+    console.log(`    Current Pool Config Emissions: ${chalk.yellowBright(currentPoolRewardInfo.rewardPerSec)} ${config.govTokenName}/sec`)
 
     return {
         govTokenTotal,
