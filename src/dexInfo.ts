@@ -51,6 +51,10 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
         }
     }
 
+    if (!currentConfig){
+        throw new Error("The current config could not be resolved!")
+    }
+
     currentPoolRewardInfo = {
         startTimestamp: currentConfig.startTimestamp.toNumber(),
         endTimestamp: currentConfig.endTimestamp.toNumber(),
