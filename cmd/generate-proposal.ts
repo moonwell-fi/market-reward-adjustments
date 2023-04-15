@@ -77,7 +77,7 @@ async function doSanityChecks(mipData: any, options: OptionValues){
     }
 }
 
-async function getDexCalcs(mipConfig: any, govTokenAmountToEmit: number) {
+export async function getDexCalcs(mipConfig: any, govTokenAmountToEmit: number) {
     const dexSplitPercentage = mipConfig.responses.componentSplits[COMPONENT.DEX_REWARDER]
     const dexTokensToEmit = new BigNumber(govTokenAmountToEmit).times(dexSplitPercentage)
     const currentEndTime = mipConfig.dexInfo.currentPoolRewardInfo.endTimestamp
@@ -114,7 +114,7 @@ async function getDexCalcs(mipConfig: any, govTokenAmountToEmit: number) {
     }
 }
 
-async function getSafetyModuleCalcs(mipConfig: any, govTokenAmountToEmit: number) {
+export async function getSafetyModuleCalcs(mipConfig: any, govTokenAmountToEmit: number) {
     const smSplitPercentage = mipConfig.responses.componentSplits[COMPONENT.SAFETY_MODULE]
     const smTokensToEmit = new BigNumber(govTokenAmountToEmit).times(smSplitPercentage)
 
@@ -325,7 +325,7 @@ function formatPercentAsSpan(percent: BigNumber){
     }
 }
 
-function getMarketDataWithCalcs(
+export function getMarketDataWithCalcs(
     mipConfig: any,
     govTokenAmountToEmit: number,
     nativeTokenAmountToEmit: number,
@@ -612,7 +612,7 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     return proposalData
 }
 
-async function printPropsalSummary(
+export async function printPropsalSummary(
     mipConfig: MipConfig,
     globalRenderFunctions: any,
     smCalcs: any,
