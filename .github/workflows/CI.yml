@@ -6,8 +6,10 @@ on:
   pull_request:
     branches: [ master ]
 
-jobs:
+env:
+  NODE_OPTIONS: --openssl-legacy-provider
 
+jobs:
   build:
     runs-on: ubuntu-latest
     steps:
@@ -39,6 +41,7 @@ jobs:
 
       - name: Deploy Docs
         uses: JamesIves/github-pages-deploy-action@4.1.4
+        if: github.event_name != 'pull_request' # Only deploy docs on merge with master
         with:
           branch: gh-pages
           folder: docs/.vuepress/dist/
