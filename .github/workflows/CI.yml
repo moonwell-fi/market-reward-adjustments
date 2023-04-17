@@ -28,14 +28,14 @@ jobs:
         if: steps.node-cache.outputs.cache-hit != 'true'
         run: npm ci
 
-#      - name: Run Tests
-#        run: npm test
-#
-#      - name: Create the docs directory locally in CI
-#        run: npx typedoc --media media/ src/index.ts
-#
-#      - name: Deploy Docs
-#        uses: JamesIves/github-pages-deploy-action@4.1.4
-#        with:
-#          branch: gh-pages
-#          folder: docs
+      - name: Run Tests
+        run: npm test
+
+      - name: Create the docs directory locally in CI
+        run: npx vuepress build docs
+
+      - name: Deploy Docs
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: gh-pages
+          folder: docs/.vuepress/dist/

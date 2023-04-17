@@ -16,3 +16,11 @@ bash:
 		--workdir $$(pwd) \
 		$(TAG) \
 		bash
+
+vuepress:
+	docker run --rm -it \
+		-v $$(pwd):$$(pwd) \
+		--workdir $$(pwd) \
+		-p 8080:8080 \
+		$(TAG) \
+		npm run vuepress-dev

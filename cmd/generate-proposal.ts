@@ -630,7 +630,6 @@ export async function printPropsalSummary(
     const contracts = defaultConfig[mipConfig.config.networkName as NETWORK].contracts
 
     console.log(`${chalk.bold.greenBright('===== Proposal Info =====')}`)
-
     console.log()
 
     const outputs = [

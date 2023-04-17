@@ -7,3 +7,6 @@ node_modules/
 dist/
 
 proposal.json
+
+docs/mips/
+docs/README.md
