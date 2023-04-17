@@ -6,7 +6,8 @@
   "types": "dist/src/index.d.ts",
   "bin": {
     "moonwell-config-generator": "dist/cmd/generate-config.js",
-    "moonwell-proposal-generator": "dist/cmd/generate-proposal.js"
+    "moonwell-proposal-generator": "dist/cmd/generate-proposal.js",
+    "moonwell-proposal-viewer": "dist/cmd/view-proposal.js"
   },
   "scripts": {
     "test": "echo \"No test specified\"",
