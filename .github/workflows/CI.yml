@@ -35,6 +35,8 @@ jobs:
 
       - name: Create the docs directory locally in CI
         run: npx vuepress build docs
+        env:
+          NODE_OPTIONS: --openssl-legacy-provider
 
       - name: Deploy Docs
         uses: JamesIves/github-pages-deploy-action@4.1.4
