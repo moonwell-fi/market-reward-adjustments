@@ -10,7 +10,6 @@ import {generateProposalMarkdown, getMarkdownFunctions} from "../src/markdown";
 import {omit} from "lodash";
 import fs from "fs";
 import path from "path";
-import {render} from "sass";
 
 if (require.main === module) {
     (async () => {

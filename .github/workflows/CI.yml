@@ -32,6 +32,9 @@ jobs:
         run: npm test
 
       - name: Create the docs directory locally in CI
+        run: npx ts-node cmd/generate-docs.ts
+
+      - name: Create the docs directory locally in CI
         run: npx vuepress build docs
 
       - name: Deploy Docs
