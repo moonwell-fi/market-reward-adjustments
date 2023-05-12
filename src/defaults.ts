@@ -70,7 +70,7 @@ const defaultConfig: DefaultConfig = {
 
         dexPoolID: 15,
 
-        submissionRewardAmount: 100_000,
+        submissionRewardAmount: 10_000,
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
         defaultSplits: {
