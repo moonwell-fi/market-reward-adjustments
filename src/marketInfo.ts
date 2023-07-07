@@ -16,7 +16,14 @@ export async function fetchMarketInfo(config: NetworkSpecificConfig, provider: e
 
     for (const [displayTicker, market] of Object.entries(config.contracts.MARKETS)){
         // Ignore deprecated assets
-        if (market.isDeprecated || displayTicker === 'BUSD.wh' || displayTicker === 'BTC.multi'){
+        if (
+            market.isDeprecated || 
+            displayTicker === 'BUSD.wh' ||
+            displayTicker === 'BTC.multi' || 
+            displayTicker === 'ETH.multi' ||
+            displayTicker === 'USDC.multi' ||
+            displayTicker === 'USDT.multi'
+        ){
             continue
         }
 
