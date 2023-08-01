@@ -42,7 +42,7 @@ const defaultConfig: DefaultConfig = {
                                             .times(4) // 4 weeks per reward cycle
                                             .integerValue(BigNumber.ROUND_DOWN)
                                             .toNumber(), // MFAM
-            [REWARD_TYPE.NATIVE_TOKEN]: 9_926, // MOVR
+            [REWARD_TYPE.NATIVE_TOKEN]: 2_481.5, // MOVR
         },
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
