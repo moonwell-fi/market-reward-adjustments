@@ -74,9 +74,9 @@ const defaultConfig: DefaultConfig = {
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
         defaultSplits: {
-            [COMPONENT.ALL_MARKETS]: 0.35,
+            [COMPONENT.ALL_MARKETS]: 0.45,
             [COMPONENT.SAFETY_MODULE]: 0.45,
-            [COMPONENT.DEX_REWARDER]: 0.20,
+            [COMPONENT.DEX_REWARDER]: 0.10,
         },
 
         // The default grant sizes, denominated in underlying tokens as whole numbers (no mantissa)
@@ -88,7 +88,7 @@ const defaultConfig: DefaultConfig = {
                                         .times(28)
                                         .integerValue(BigNumber.ROUND_DOWN)
                                         .toNumber(),
-            [REWARD_TYPE.NATIVE_TOKEN]: 300_000, // GLMR, based on projected tranche 2 grant
+            [REWARD_TYPE.NATIVE_TOKEN]: 262_808.9, // GLMR, based on tranche 2 grant
         },
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
