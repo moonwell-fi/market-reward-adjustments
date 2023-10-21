@@ -23,7 +23,7 @@ const defaultConfig: DefaultConfig = {
 
         dexPoolID: 11,
 
-        submissionRewardAmount: 150_000,
+        submissionRewardAmount: 250_000,
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
         defaultSplits: {
@@ -74,9 +74,9 @@ const defaultConfig: DefaultConfig = {
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
         defaultSplits: {
-            [COMPONENT.ALL_MARKETS]: 0.45,
-            [COMPONENT.SAFETY_MODULE]: 0.45,
-            [COMPONENT.DEX_REWARDER]: 0.10,
+            [COMPONENT.ALL_MARKETS]: 0.47,
+            [COMPONENT.SAFETY_MODULE]: 0.47,
+            [COMPONENT.DEX_REWARDER]: 0.6,
         },
 
         // The default grant sizes, denominated in underlying tokens as whole numbers (no mantissa)
