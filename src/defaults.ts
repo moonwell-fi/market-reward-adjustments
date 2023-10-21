@@ -76,7 +76,7 @@ const defaultConfig: DefaultConfig = {
         defaultSplits: {
             [COMPONENT.ALL_MARKETS]: 0.47,
             [COMPONENT.SAFETY_MODULE]: 0.47,
-            [COMPONENT.DEX_REWARDER]: 0.6,
+            [COMPONENT.DEX_REWARDER]: 0.06,
         },
 
         // The default grant sizes, denominated in underlying tokens as whole numbers (no mantissa)
