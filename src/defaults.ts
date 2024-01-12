@@ -42,7 +42,7 @@ const defaultConfig: DefaultConfig = {
                                             .times(4) // 4 weeks per reward cycle
                                             .integerValue(BigNumber.ROUND_DOWN)
                                             .toNumber(), // MFAM
-            [REWARD_TYPE.NATIVE_TOKEN]: 2_481.5, // MOVR
+            [REWARD_TYPE.NATIVE_TOKEN]: 1_488.9, // MOVR
         },
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
@@ -70,13 +70,13 @@ const defaultConfig: DefaultConfig = {
 
         dexPoolID: 15,
 
-        submissionRewardAmount: 50_000,
+        submissionRewardAmount: 80_000,
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
         defaultSplits: {
-            [COMPONENT.ALL_MARKETS]: 0.47,
+            [COMPONENT.ALL_MARKETS]: 0.48,
             [COMPONENT.SAFETY_MODULE]: 0.47,
-            [COMPONENT.DEX_REWARDER]: 0.06,
+            [COMPONENT.DEX_REWARDER]: 0.05,
         },
 
         // The default grant sizes, denominated in underlying tokens as whole numbers (no mantissa)
@@ -88,7 +88,7 @@ const defaultConfig: DefaultConfig = {
                                         .times(28)
                                         .integerValue(BigNumber.ROUND_DOWN)
                                         .toNumber(),
-            [REWARD_TYPE.NATIVE_TOKEN]: 262_808.9, // GLMR, based on tranche 2 grant
+            [REWARD_TYPE.NATIVE_TOKEN]: 105_123.76, // GLMR, based on tranche 2 grant
         },
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
