@@ -19,7 +19,7 @@ const defaultConfig: DefaultConfig = {
         nativeAsset: Contracts.moonriver.MARKETS['MOVR'],
 
         ecosystemReserve: '0xbA17581Bb6d89954B42fB84294e476e97588908B',
-        treasuryAddress: '0x45DD368E30C07804b037260071d332e547C874F0',
+        treasuryAddress: '0x5d6C4DCb86b8A761C062a5274a77AaD5F7209AA3', // change to DEVGRANT
 
         dexPoolID: 11,
 
@@ -34,12 +34,12 @@ const defaultConfig: DefaultConfig = {
 
         // The default grant sizes, denominated in underlying tokens as whole numbers (no mantissa)
         defaultGrantAmounts: {
-            // 50% of MFAM supply or 500M MFAM emitted over 2 years since 2/23/2022
-            // ~186,912,704 MFAM remaining to be emitted as of 3/14/2023
-            // There are 48 weeks remaining in the 2nd year from 2/23/2023 to 2/23/2024
-            [REWARD_TYPE.GOV_TOKEN]: new BigNumber(186_912_704) // 186,912,704 in total remaining
-                                            .div(48) // 48 weeks left in the year
-                                            .times(4) // 4 weeks per reward cycle
+            // Remaining DEVGRANT wallet = 198,049,948 as of 2/12/2024
+            // Remaining reward cycles = 26 (52 weeks in a year for 2 years, 4 weeks per reward cycle)
+            // Total of submissionRewardAmounts = 250,000 * 26 = 6,500,000
+            // Total of DEVGRANT wallet (198,049,948) - Total of submissionRewardAmounts (6,500,000) = 191,549,948 
+            // Divide by 26 reward cycles = 7,367,305
+            [REWARD_TYPE.GOV_TOKEN]: new BigNumber(7_367_305)
                                             .integerValue(BigNumber.ROUND_DOWN)
                                             .toNumber(), // MFAM
             [REWARD_TYPE.NATIVE_TOKEN]: 1_488.9, // MOVR
