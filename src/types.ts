@@ -1,4 +1,4 @@
-import {ContractBundle, Market} from "@moonwell-fi/moonwell.js";
+import { ContractBundle, Market } from "@moonwell-fi/moonwell.js";
 
 export enum NETWORK {
     MOONRIVER = "Moonriver",
@@ -89,6 +89,7 @@ export type DexPoolRewardInfo = {
 }
 
 export type DexInfo = {
+    addingNewMarket: boolean
     govTokenTotal: string
     nativeAssetTotal: string
     govTokenPrice: string
@@ -118,11 +119,11 @@ export type AssetData = {
 }
 
 export type Assets = {
-    [key:string]: AssetData
+    [key: string]: AssetData
 }
 
 export type RewardSplits = {
-    [key:string]: number
+    [key: string]: number
 }
 
 export type MarketData = {
@@ -151,7 +152,7 @@ export type Responses = {
     network: string
     mipNumber: number
     componentSplits: ComponentSplits
-    emissionAmounts: {[key in REWARD_TYPE]: number}
+    emissionAmounts: { [key in REWARD_TYPE]: number }
     submitterWallet: string
 }
 
