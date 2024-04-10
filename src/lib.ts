@@ -39,7 +39,7 @@ export async function addProposalToPropData(contract: Contract, fn: string, args
 
 export function loadTemplate(templateName: string, dir = 'markdown') {
     return fs.readFileSync(
-        path.resolve(__dirname, `./templates/${dir}/${templateName}`),
+        path.resolve(`./src/templates/${dir}/${templateName}`),
         { encoding: 'utf8', flag: 'r' }
     )
 }
