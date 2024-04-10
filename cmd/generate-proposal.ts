@@ -503,7 +503,18 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
 
     // Configure dexRewarder/trigger pulling the WELL rewards
     // console.log(`📝 Calling addRewardInfo on DEX_REWARDER`)
-    const currentEndTime = mipConfig.dexInfo.currentPoolRewardInfo.endTimestamp
+    const currentStartTime = mipConfig.dexInfo.currentPoolRewardInfo.endTimestamp
+
+    if (mipConfig.dexInfo.addingNewMarket == true) {
+        await addProposalToPropData(dexRewarder, 'add',
+            [
+                config.dexPoolID,
+                10000, /// 10k allocation points, should not matter as no other pools added
+                currentStartTime
+            ],
+            proposalData
+        )
+    }
 
     await addProposalToPropData(dexRewarder, 'addRewardInfo',
         [

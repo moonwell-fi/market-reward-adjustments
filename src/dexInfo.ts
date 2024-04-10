@@ -51,11 +51,16 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
         }
     }
 
+    let addingNewMarket = false;
+
     if (!currentConfig) {
-        console.log("no current configuration found");
+        addingNewMarket = true;
+        /// used to bootstrap a new market without a configuration.
+        /// be sure to update the start and end timestamps to the correct values if you use this.
+        console.log("no current configuration found, using hardcoded defaults");
         currentConfig = {
-            startTimestamp: new BigNumber(0),
-            endTimestamp: new BigNumber(0),
+            startTimestamp: new BigNumber(1713497400),
+            endTimestamp: new BigNumber(1715916600),
             rewardPerSec: 0
         };
     }
@@ -88,6 +93,7 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
     console.log(`    Current Pool Config Emissions: ${chalk.yellowBright(currentPoolRewardInfo.rewardPerSec)} ${config.govTokenName}/sec`)
 
     return {
+        addingNewMarket,
         govTokenTotal,
         nativeAssetTotal,
         govTokenPrice,
