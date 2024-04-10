@@ -1,27 +1,27 @@
 #!/usr/bin/env node
 
-import {NETWORK} from "../src/types";
+import { NETWORK } from "../src/types";
 import defaultConfig from "../src/defaults";
 
-import {ethers} from 'ethers'
+import { ethers } from 'ethers'
 import * as fs from "fs";
-import {gatherInfoFromUser} from "../src/prompts";
-import {omit} from "lodash";
-import {OptionValues, program} from "commander";
+import { gatherInfoFromUser } from "../src/prompts";
+import { omit } from "lodash";
+import { OptionValues, program } from "commander";
 import * as path from "path";
 import chalk from "chalk";
-import {fetchDexInfo} from "../src/dexInfo";
-import {fetchSafetyModuleInfo} from "../src/safetyModuleInfo";
-import {fetchMarketInfo} from "../src/marketInfo";
+import { fetchDexInfo } from "../src/dexInfo";
+import { fetchSafetyModuleInfo } from "../src/safetyModuleInfo";
+import { fetchMarketInfo } from "../src/marketInfo";
 
-function printIntro(){
+function printIntro() {
     console.log("Welcome to the moonwell market adjuster!")
     console.log("This handy wizard will help you generate a config file that can be consumed by the `generate-proposal` tool.")
     console.log("You'll answer a series of questions below which should handle all the heavy lifting/hard work for you!")
     console.log()
 }
 
-async function generateConfig(options: OptionValues){
+async function generateConfig(options: OptionValues) {
     printIntro()
 
     const responses = await gatherInfoFromUser(options)
@@ -38,7 +38,7 @@ async function generateConfig(options: OptionValues){
     console.log(`  Latest ${chalk.yellowBright('Block')}: ${chalk.yellowBright(snapshotBlock.number.toLocaleString())}`)
 
     // Used by provider calls
-    const blockTag: ethers.CallOverrides = {blockTag: snapshotBlock.number}
+    const blockTag: ethers.CallOverrides = { blockTag: snapshotBlock.number }
 
     const marketData = await fetchMarketInfo(
         config, provider, blockTag

@@ -2,8 +2,8 @@
 
 import fs from "fs";
 import path from "path";
-import {omit, template} from "lodash";
-import {BigNumber} from "bignumber.js";
+import { omit, template } from "lodash";
+import { BigNumber } from "bignumber.js";
 import {
     addProposalToPropData,
     emissionTable,
@@ -12,39 +12,39 @@ import {
     loadTemplate, multiEmissionTable,
     ONE_DAY_IN_SECONDS, ONE_WEEK_IN_SECONDS, ONE_YEAR_IN_DAYS
 } from "../src/lib";
-import {COMPONENT, MARKET_SIDE, MipConfig, NETWORK, REWARD_TYPE} from "../src/types";
+import { COMPONENT, MARKET_SIDE, MipConfig, NETWORK, REWARD_TYPE } from "../src/types";
 import defaultConfig from "../src/defaults";
-import {ethers, BigNumber as EthersBigNumber} from "ethers";
-import {generateProposalMarkdown, getMarkdownFunctions} from "../src/markdown";
+import { ethers, BigNumber as EthersBigNumber } from "ethers";
+import { generateProposalMarkdown, getMarkdownFunctions } from "../src/markdown";
 
 import chalk from 'chalk'
-import {OptionValues, program} from "commander";
+import { OptionValues, program } from "commander";
 
-function printIntro(){
+function printIntro() {
     console.log("Welcome to the proposal generator!")
     console.log("This tool reads in a config from the \`generate-config\` tool and produces a proposal and corresponding JSON needed to submit this market adjustment on-chain.")
     console.log()
 }
 
 // Sanity checks for the config being read in
-async function doSanityChecks(mipData: any, options: OptionValues){
+async function doSanityChecks(mipData: any, options: OptionValues) {
     // Check component splits equal 100%
     const componentSums = Object.values(mipData.responses.componentSplits).reduce((acc: BigNumber, percent: any) => { return acc.plus(percent) }, new BigNumber(0))
-    if (!componentSums.isEqualTo(1)){
+    if (!componentSums.isEqualTo(1)) {
         console.log("Component splits:\n", mipData.responses.componentSplits)
         throw new Error("Component don't equal 1!")
     }
 
     // Check market distribution splits equal 100%
     const govRewardSplits = Object.values(mipData.marketData.govRewardSplits).reduce((acc: BigNumber, percent: any) => { return acc.plus(percent) }, new BigNumber(0))
-    if (!govRewardSplits.isEqualTo(1)){
+    if (!govRewardSplits.isEqualTo(1)) {
         console.log("Gov Market splits:\n", mipData.marketData.rewardSplits)
         throw new Error("Market splits don't equal 1!")
     }
 
     // Check market distribution splits equal 100%
     const nativeRewardSplits = Object.values(mipData.marketData.nativeRewardSplits).reduce((acc: BigNumber, percent: any) => { return acc.plus(percent) }, new BigNumber(0))
-    if (!nativeRewardSplits.isEqualTo(1)){
+    if (!nativeRewardSplits.isEqualTo(1)) {
         console.log("Native Market splits:\n", mipData.marketData.rewardSplits)
         throw new Error("Market splits don't equal 1!")
     }
@@ -53,13 +53,13 @@ async function doSanityChecks(mipData: any, options: OptionValues){
     Object.entries(mipData.marketData.assets).forEach(([marketTicker, marketData]: [string, any]) => {
         const govSupply = new BigNumber(marketData.govSupplyBorrowSplit[MARKET_SIDE.SUPPLY])
         const govBorrow = new BigNumber(marketData.govSupplyBorrowSplit[MARKET_SIDE.BORROW])
-        if (!govSupply.plus(govBorrow).isEqualTo(1)){
+        if (!govSupply.plus(govBorrow).isEqualTo(1)) {
             throw new Error(`The gov side split on market ${marketTicker} doesn't add up to 1! ${JSON.stringify(marketData.supplyBorrowSplit)}`)
         }
 
         const nativeSupply = new BigNumber(marketData.nativeSupplyBorrowSplit[MARKET_SIDE.SUPPLY])
         const nativeBorrow = new BigNumber(marketData.nativeSupplyBorrowSplit[MARKET_SIDE.BORROW])
-        if (!nativeSupply.plus(nativeBorrow).isEqualTo(1)){
+        if (!nativeSupply.plus(nativeBorrow).isEqualTo(1)) {
             throw new Error(`The native side split on market ${marketTicker} doesn't add up to 1! ${JSON.stringify(marketData.supplyBorrowSplit)}`)
         }
     })
@@ -72,7 +72,7 @@ async function doSanityChecks(mipData: any, options: OptionValues){
 
     const timeDelta = new BigNumber(now).minus(configBlock.timestamp)
     const timeDeltaInDays = timeDelta.div(ONE_DAY_IN_SECONDS)
-    if (timeDelta.isGreaterThan(ONE_WEEK_IN_SECONDS) && !options.oldBlocksAreOk){
+    if (timeDelta.isGreaterThan(ONE_WEEK_IN_SECONDS) && !options.oldBlocksAreOk) {
         throw new Error(`The specified block found in the config file (${configBlock.number.toLocaleString()}) is ${timeDeltaInDays.toFixed(2)} days old, which is older than a week!\nThis data is probably too stale to be used in a proposal, please generate a new config file!`)
     }
 }
@@ -96,9 +96,9 @@ export async function getDexCalcs(mipConfig: any, govTokenAmountToEmit: number) 
     const newDEXEndTimestamp = currentEndTime + (ONE_DAY_IN_SECONDS * mipConfig.config.daysPerRewardCycle)
 
     let dexRewarderChangedPercentString
-    if (dexRewarderChangedPercent.integerValue().isGreaterThan(0)){
+    if (dexRewarderChangedPercent.integerValue().isGreaterThan(0)) {
         dexRewarderChangedPercentString = `to <span style="color:#5CCC4E">increase</span> emissions <span style="color:#5CCC4E">+${formatNumber(dexRewarderChangedPercent, 2)}%</span>`
-    } else if (dexRewarderChangedPercent.integerValue().isLessThan(0)){
+    } else if (dexRewarderChangedPercent.integerValue().isLessThan(0)) {
         dexRewarderChangedPercentString = `to <span style="color:red">decrease</span> emissions <span style="color:red">${formatNumber(dexRewarderChangedPercent, 2)}%</span>`
     } else {
         dexRewarderChangedPercentString = `<span style="color:#FFCF60">to keep emissions the same</span>`
@@ -131,9 +131,9 @@ export async function getSafetyModuleCalcs(mipConfig: any, govTokenAmountToEmit:
         .times(100)
 
     let smChangePercentString
-    if (safetyModuleChangedPercent.integerValue().isGreaterThan(0)){
+    if (safetyModuleChangedPercent.integerValue().isGreaterThan(0)) {
         smChangePercentString = `to <span style="color:#5CCC4E">increase</span> emissions <span style="color:#5CCC4E">+${formatNumber(safetyModuleChangedPercent, 2)}%</span>`
-    } else if (safetyModuleChangedPercent.integerValue().isLessThan(0)){
+    } else if (safetyModuleChangedPercent.integerValue().isLessThan(0)) {
         smChangePercentString = `to <span style="color:red">decrease</span> emissions <span style="color:red">${formatNumber(safetyModuleChangedPercent, 2)}%</span>`
     } else {
         smChangePercentString = `to <span style="color:#FFCF60">keep emissions the same</span>`
@@ -149,7 +149,7 @@ export async function getSafetyModuleCalcs(mipConfig: any, govTokenAmountToEmit:
 }
 
 function getNativeAssetPrice(mipConfig: MipConfig) {
-    if (mipConfig.responses.network === NETWORK.MOONBEAM){
+    if (mipConfig.responses.network === NETWORK.MOONBEAM) {
         return mipConfig.marketData.assets['GLMR'].price
     } else {
         return mipConfig.marketData.assets['MOVR'].price
@@ -199,7 +199,7 @@ function getMarketCalcs(
         TVL: BigNumber,
         baseAPR: BigNumber,
         supply: boolean,
-    ){
+    ) {
         const govAPR = new BigNumber(govPrice)
             .times(govSupplyPerDay)
             .div(TVL)
@@ -222,7 +222,7 @@ function getMarketCalcs(
         const distributionAPR = govAPR.plus(nativeAPR)
 
         let totalAPR
-        if (supply){
+        if (supply) {
             totalAPR = distributionAPR.plus(protocolAPR)
         } else {
             totalAPR = distributionAPR.minus(protocolAPR)
@@ -270,7 +270,7 @@ function getMarketCalcs(
 
         proposedBorrowNativeTokensPerSecond,
         proposedBorrowNativeTokensPerDay: proposedBorrowNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS),
-        proposedBorrowNativeTokensPerPeriod:proposedBorrowNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
+        proposedBorrowNativeTokensPerPeriod: proposedBorrowNativeTokensPerSecond.times(ONE_DAY_IN_SECONDS).times(DAYS_PER_CYCLE),
 
         currentSupplyAPRs: calculateAPRs(
             mipConfig.dexInfo.govTokenPrice,
@@ -314,11 +314,11 @@ function getMarketCalcs(
     }
 }
 
-function formatPercentAsSpan(percent: BigNumber){
-    if (!percent.isFinite()){
+function formatPercentAsSpan(percent: BigNumber) {
+    if (!percent.isFinite()) {
         return `<span style="color:#5CCC4E">+0%</span>`
     }
-    if (percent.isGreaterThanOrEqualTo(0)){
+    if (percent.isGreaterThanOrEqualTo(0)) {
         return `<span style="color:#5CCC4E">+${percent.times(100).toFixed(2)}%</span>`
     } else {
         return `<span style="color:red">${percent.times(100).toFixed(2)}%</span>`
@@ -395,9 +395,8 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     const proposalData = {
         targets: [],
         values: [],
-        signatures: [],
         callDatas: [],
-        description: Buffer.from(formattedProposal).toString('base64')
+        description: formattedProposal
     }
 
     const config = defaultConfig[mipConfig.config.networkName as NETWORK]
@@ -428,8 +427,8 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
 
     // Send WELL from F-GLMR-LM to ecosystemReserve
     const SMSendParam = new BigNumber(smCalcs.smTokensToEmit)
-                            .integerValue(BigNumber.ROUND_UP)
-                            .plus(1)  // Add a buffer WELL token in case there's some rounding issues
+        .integerValue(BigNumber.ROUND_UP)
+        .plus(1)  // Add a buffer WELL token in case there's some rounding issues
 
     // console.log(`📝 Sending ${SMSendParam.toLocaleString()} WELL to the ECOSYSTEM_RESERVE`)
 
@@ -449,7 +448,7 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     // Send WELL from F-GLMR-LM to unitroller
     const govTokensToEmitToMarkets = (Object.values(marketDataWithCalcs)[0] as any).marketGovTokensToEmit
     const comptrollerSendParam = new BigNumber(govTokensToEmitToMarkets)
-                                    .integerValue(BigNumber.ROUND_UP)
+        .integerValue(BigNumber.ROUND_UP)
 
     // console.log(`📝 Sending ${comptrollerSendParam.toFixed()} WELL to the COMPTROLLER`)
     await addProposalToPropData(govToken, 'transferFrom',
@@ -467,8 +466,8 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
 
     // Pull in WELL to the timelock from F-GLMR-LM
     const dexRewarderSendParam = new BigNumber(dexCalcs.dexTokensToEmit)
-                                    .integerValue(BigNumber.ROUND_UP)
-                                    .plus(2)
+        .integerValue(BigNumber.ROUND_UP)
+        .plus(2)
 
     // console.log(`📝 Sending ${dexRewarderSendParam.toLocaleString()} WELL to the DEX_REWARDER`)
     await addProposalToPropData(govToken, 'transferFrom',
@@ -528,7 +527,7 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
 
     // Only update if necessary
     const currentSMEmissions = new BigNumber(mipConfig.safetyModuleInfo.emissions.emissionsPerSecond)
-    if (currentSMEmissions.isEqualTo(smCalcs.newSMEmissionsPerSecond)){
+    if (currentSMEmissions.isEqualTo(smCalcs.newSMEmissionsPerSecond)) {
         // console.log(`⏭️ Skipping adjusting the SAFETY_MODULE`)
     } else {
         // Configure new reward speeds for stkWELL
@@ -548,7 +547,7 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     // Market Configs
     //
 
-    for (const market of Object.entries(marketDataWithCalcs)){
+    for (const market of Object.entries(marketDataWithCalcs)) {
         const [marketTicker, marketData]: any[] = market
         const marketCalcs = marketData.marketCalcs
 
@@ -609,6 +608,26 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
             proposalData
         )
     }
+
+    // Manually define the function signature
+    const functionSignature = "propose(address[],uint256[],bytes[],string)";
+
+    // Create a FunctionFragment from the signature
+    const functionFragment = ethers.utils.FunctionFragment.from(functionSignature);
+
+    // Encode the function call using the Interface
+    const iface = new ethers.utils.Interface([functionFragment]);
+    const encodedData = iface.encodeFunctionData(functionFragment, [
+        proposalData.targets,
+        proposalData.values,
+        proposalData.callDatas,
+        proposalData.description,
+    ]);
+
+    console.log("\n\n\n  Multichain Governor Propose Calldata\n");
+    console.log(encodedData);
+    console.log("\n");
+
     return proposalData
 }
 
@@ -633,18 +652,21 @@ export async function printPropsalSummary(
     console.log()
 
     const outputs = [
-        introMarkdown({...mipConfig, ...globalRenderFunctions}),
+        introMarkdown({ ...mipConfig, ...globalRenderFunctions }),
         // Safety Module
         safetyModuleMarkdown({
             smCalcs,
-            emissionTable, ...globalRenderFunctions, ...mipConfig }),
+            emissionTable, ...globalRenderFunctions, ...mipConfig
+        }),
         // Dex Rewarder
         dexRewarderMarkdown({
             dexCalcs,
-            emissionTable, ...globalRenderFunctions, ...mipConfig }),
+            emissionTable, ...globalRenderFunctions, ...mipConfig
+        }),
         // Markets
         marketTopperMarkdown({
-            ...globalRenderFunctions, ...mipConfig }),
+            ...globalRenderFunctions, ...mipConfig
+        }),
         Object.entries(marketDataWithCalcs).map(([marketTicker, individualMarketData]: any) => {
             return marketMarkdown({
                 marketTicker, individualMarketData,
@@ -656,10 +678,10 @@ export async function printPropsalSummary(
     console.log(outputs.join("\n"))
 }
 
-export default async function generateProposal(mipPath: string, options: OptionValues){
+export default async function generateProposal(mipPath: string, options: OptionValues) {
     const mipPathNormalized = path.resolve('./', mipPath)
-    if (fs.existsSync(mipPathNormalized)){
-        const rawConfigData = fs.readFileSync(mipPathNormalized, {encoding:'utf8', flag:'r'})
+    if (fs.existsSync(mipPathNormalized)) {
+        const rawConfigData = fs.readFileSync(mipPathNormalized, { encoding: 'utf8', flag: 'r' })
         const mipConfig: MipConfig = JSON.parse(rawConfigData)
 
         // console.log(rawConfigData)
@@ -733,10 +755,10 @@ if (require.main === module) {
 
         program.parse(process.argv)
 
-        if (program.args.length === 0){
+        if (program.args.length === 0) {
             console.log("Please specify the path to a MIP configuration file (usually found in configs/)")
             process.exit(1)
-        } else if (program.args.length > 1){
+        } else if (program.args.length > 1) {
             console.log("Please only specify the path to a single MIP configuration file")
             process.exit(1)
         }

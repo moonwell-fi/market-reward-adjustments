@@ -1,7 +1,7 @@
-import {NETWORK, NetworkSpecificConfig} from "./types";
-import {ethers} from "ethers";
-import {BigNumber} from "bignumber.js";
-import {formatNumber, ONE_DAY_IN_SECONDS, ONE_YEAR_IN_DAYS} from "./lib";
+import { NETWORK, NetworkSpecificConfig } from "./types";
+import { ethers } from "ethers";
+import { BigNumber } from "bignumber.js";
+import { formatNumber, ONE_DAY_IN_SECONDS, ONE_YEAR_IN_DAYS } from "./lib";
 import chalk from "chalk";
 import path from "path";
 
@@ -40,7 +40,7 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
     }
 
     // Go enumerate the next free slot
-    for (;;) {
+    for (; ;) {
         try {
             currentConfig = await config.contracts.DEX_REWARDER.contract.connect(provider).poolRewardInfo(config.dexPoolID, nextFreeSlot + 1)
             nextFreeSlot += 1
@@ -51,7 +51,7 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
         }
     }
 
-    if (!currentConfig){
+    if (!currentConfig) {
         throw new Error("The current config could not be resolved!")
     }
 
