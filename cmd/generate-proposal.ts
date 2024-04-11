@@ -620,24 +620,47 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
         )
     }
 
-    // Manually define the function signature
-    const functionSignature = "propose(address[],uint256[],bytes[],string)";
+    if (mipConfig.config.networkName === NETWORK.MOONBEAM) {
 
-    // Create a FunctionFragment from the signature
-    const functionFragment = ethers.utils.FunctionFragment.from(functionSignature);
+        // Manually define the function signature
+        const functionSignature = "propose(address[],uint256[],bytes[],string)";
 
-    // Encode the function call using the Interface
-    const iface = new ethers.utils.Interface([functionFragment]);
-    const encodedData = iface.encodeFunctionData(functionFragment, [
-        proposalData.targets,
-        proposalData.values,
-        proposalData.callDatas,
-        proposalData.description,
-    ]);
+        // Create a FunctionFragment from the signature
+        const functionFragment = ethers.utils.FunctionFragment.from(functionSignature);
 
-    console.log("\n\n\n  Multichain Governor Propose Calldata\n");
-    console.log(encodedData);
-    console.log("\n");
+        // Encode the function call using the Interface
+        const iface = new ethers.utils.Interface([functionFragment]);
+        const encodedData = iface.encodeFunctionData(functionFragment, [
+            proposalData.targets,
+            proposalData.values,
+            proposalData.callDatas,
+            proposalData.description,
+        ]);
+
+        console.log("\n\n\n  Multichain Governor Propose Calldata\n");
+        console.log(encodedData);
+        console.log("\n");
+    } else {
+        /// Moonriver network deployment and logging
+        const functionSignature = "propose(address[],uint256[],string[],bytes[],string)";
+
+        // Create a FunctionFragment from the signature
+        const functionFragment = ethers.utils.FunctionFragment.from(functionSignature);
+
+        // Encode the function call using the Interface
+        const iface = new ethers.utils.Interface([functionFragment]);
+        const signatures = new Array<string>(proposalData.targets.length).fill("");
+        const encodedData = iface.encodeFunctionData(functionFragment, [
+            proposalData.targets,
+            proposalData.values,
+            signatures,
+            proposalData.callDatas,
+            proposalData.description,
+        ]);
+
+        console.log("\n\n\n  Moonriver Governor Propose Calldata\n");
+        console.log(encodedData, "\n\n");
+    }
 
     return proposalData
 }
