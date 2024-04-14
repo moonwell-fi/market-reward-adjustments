@@ -1,6 +1,6 @@
 {
   "name": "@moonwell-fi/market-reward-adjuster",
-  "version": "1.0.33",
+  "version": "1.0.34",
   "description": "",
   "main": "dist/cmd/generate-config.js",
   "types": "dist/src/index.d.ts",
@@ -31,7 +31,7 @@
     "vuepress": "^1.9.9"
   },
   "dependencies": {
-    "@moonwell-fi/moonwell.js": "0.3.6",
+    "@moonwell-fi/moonwell.js": "0.3.7",
     "bignumber.js": "^9.1.1",
     "chalk": "^4.1.2",
     "commander": "^10.0.0",
