@@ -88,7 +88,7 @@ const defaultConfig: DefaultConfig = {
                                         .times(28)
                                         .integerValue(BigNumber.ROUND_DOWN)
                                         .toNumber(),
-            [REWARD_TYPE.NATIVE_TOKEN]: 105_123.76, // GLMR, based on tranche 2 grant
+            [REWARD_TYPE.NATIVE_TOKEN]: 0, // Grants are completely spent
         },
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
