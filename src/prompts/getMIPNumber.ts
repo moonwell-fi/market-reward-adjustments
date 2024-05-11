@@ -8,7 +8,7 @@ import chalk from "chalk";
 export async function getMIPNumber(options: OptionValues){
     const promptResponse = await prompts([
         {
-            type: 'number',
+            type: 'text',
             name: 'mip',
             message: `What is the ${chalk.yellowBright('MIP number')} of this proposal?`,
             validate: (mipNumber) => {
