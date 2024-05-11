@@ -470,32 +470,32 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
         .plus(2)
 
     // console.log(`📝 Sending ${dexRewarderSendParam.toLocaleString()} WELL to the DEX_REWARDER`)
-    await addProposalToPropData(govToken, 'transferFrom',
-        [
-            config.treasuryAddress,
-            contracts.TIMELOCK!.address,
-            EthersBigNumber.from(
-                dexRewarderSendParam
-                    .times(mantissa)
-                    .toFixed()
-            )
-        ],
-        proposalData
-    )
+    // await addProposalToPropData(govToken, 'transferFrom',
+    //     [
+    //         config.treasuryAddress,
+    //         contracts.TIMELOCK!.address,
+    //         EthersBigNumber.from(
+    //             dexRewarderSendParam
+    //                 .times(mantissa)
+    //                 .toFixed()
+    //         )
+    //     ],
+    //     proposalData
+    // )
 
     // Approve dexRewarder to pull WELL from the timelock
     // console.log(`📝 Approving ${dexRewarderSendParam.toLocaleString()} WELL to be pulled by DEX_REWARDER`)
-    await addProposalToPropData(govToken, 'approve',
-        [
-            contracts.DEX_REWARDER.address,
-            EthersBigNumber.from(
-                dexRewarderSendParam
-                    .times(mantissa)
-                    .toFixed()
-            )
-        ],
-        proposalData
-    )
+    // await addProposalToPropData(govToken, 'approve',
+    //     [
+    //         contracts.DEX_REWARDER.address,
+    //         EthersBigNumber.from(
+    //             dexRewarderSendParam
+    //                 .times(mantissa)
+    //                 .toFixed()
+    //         )
+    //     ],
+    //     proposalData
+    // )
 
     //
     // Dex rewarder
@@ -505,32 +505,32 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     // console.log(`📝 Calling addRewardInfo on DEX_REWARDER`)
     const currentStartTime = mipConfig.dexInfo.currentPoolRewardInfo.endTimestamp
 
-    if (mipConfig.dexInfo.addingNewMarket == true) {
-        await addProposalToPropData(dexRewarder, 'add',
-            [
-                config.dexPoolID,
-                10000, /// 10k allocation points, should not matter as no other pools added
-                currentStartTime
-            ],
-            proposalData
-        )
-    }
+    // if (mipConfig.dexInfo.addingNewMarket == true) {
+    //     await addProposalToPropData(dexRewarder, 'add',
+    //         [
+    //             config.dexPoolID,
+    //             10000, /// 10k allocation points, should not matter as no other pools added
+    //             currentStartTime
+    //         ],
+    //         proposalData
+    //     )
+    // }
 
-    await addProposalToPropData(dexRewarder, 'addRewardInfo',
-        [
-            config.dexPoolID,
-            dexCalcs.newDEXEndTimestamp,
-            EthersBigNumber.from(
-                dexRewarderSendParam
-                    .div(mipConfig.config.daysPerRewardCycle)
-                    .div(ONE_DAY_IN_SECONDS)
-                    .shiftedBy(18)
-                    .integerValue(BigNumber.ROUND_DOWN)
-                    .toFixed()
-            )
-        ],
-        proposalData
-    )
+    // await addProposalToPropData(dexRewarder, 'addRewardInfo',
+    //     [
+    //         config.dexPoolID,
+    //         dexCalcs.newDEXEndTimestamp,
+    //         EthersBigNumber.from(
+    //             dexRewarderSendParam
+    //                 .div(mipConfig.config.daysPerRewardCycle)
+    //                 .div(ONE_DAY_IN_SECONDS)
+    //                 .shiftedBy(18)
+    //                 .integerValue(BigNumber.ROUND_DOWN)
+    //                 .toFixed()
+    //         )
+    //     ],
+    //     proposalData
+    // )
 
     //
     // Safety Module
