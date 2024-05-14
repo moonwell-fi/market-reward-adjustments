@@ -430,8 +430,6 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
         .integerValue(BigNumber.ROUND_UP)
         .plus(1)  // Add a buffer WELL token in case there's some rounding issues
 
-    // console.log(`📝 Sending ${SMSendParam.toLocaleString()} WELL to the ECOSYSTEM_RESERVE`)
-
     await addProposalToPropData(govToken, 'transferFrom',
         [
             config.treasuryAddress,
@@ -450,7 +448,6 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     const comptrollerSendParam = new BigNumber(govTokensToEmitToMarkets)
         .integerValue(BigNumber.ROUND_UP)
 
-    // console.log(`📝 Sending ${comptrollerSendParam.toFixed()} WELL to the COMPTROLLER`)
     await addProposalToPropData(govToken, 'transferFrom',
         [
             config.treasuryAddress,
@@ -469,68 +466,53 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
         .integerValue(BigNumber.ROUND_UP)
         .plus(2)
 
-    // console.log(`📝 Sending ${dexRewarderSendParam.toLocaleString()} WELL to the DEX_REWARDER`)
-    // await addProposalToPropData(govToken, 'transferFrom',
-    //     [
-    //         config.treasuryAddress,
-    //         contracts.TIMELOCK!.address,
-    //         EthersBigNumber.from(
-    //             dexRewarderSendParam
-    //                 .times(mantissa)
-    //                 .toFixed()
-    //         )
-    //     ],
-    //     proposalData
-    // )
+    await addProposalToPropData(govToken, 'transferFrom',
+        [
+            config.treasuryAddress,
+            contracts.TIMELOCK!.address,
+            EthersBigNumber.from(
+                dexRewarderSendParam
+                    .times(mantissa)
+                    .toFixed()
+            )
+        ],
+        proposalData
+    )
 
     // Approve dexRewarder to pull WELL from the timelock
-    // console.log(`📝 Approving ${dexRewarderSendParam.toLocaleString()} WELL to be pulled by DEX_REWARDER`)
-    // await addProposalToPropData(govToken, 'approve',
-    //     [
-    //         contracts.DEX_REWARDER.address,
-    //         EthersBigNumber.from(
-    //             dexRewarderSendParam
-    //                 .times(mantissa)
-    //                 .toFixed()
-    //         )
-    //     ],
-    //     proposalData
-    // )
+    await addProposalToPropData(govToken, 'approve',
+        [
+            contracts.DEX_REWARDER.address,
+            EthersBigNumber.from(
+                dexRewarderSendParam
+                    .times(mantissa)
+                    .toFixed()
+            )
+        ],
+        proposalData
+    )
 
     //
     // Dex rewarder
     //
 
     // Configure dexRewarder/trigger pulling the WELL rewards
-    // console.log(`📝 Calling addRewardInfo on DEX_REWARDER`)
-    const currentStartTime = mipConfig.dexInfo.currentPoolRewardInfo.endTimestamp
 
-    // if (mipConfig.dexInfo.addingNewMarket == true) {
-    //     await addProposalToPropData(dexRewarder, 'add',
-    //         [
-    //             config.dexPoolID,
-    //             10000, /// 10k allocation points, should not matter as no other pools added
-    //             currentStartTime
-    //         ],
-    //         proposalData
-    //     )
-    // }
-
-    // await addProposalToPropData(dexRewarder, 'addRewardInfo',
-    //     [
-    //         config.dexPoolID,
-    //         dexCalcs.newDEXEndTimestamp,
-    //         EthersBigNumber.from(
-    //             dexRewarderSendParam
-    //                 .div(mipConfig.config.daysPerRewardCycle)
-    //                 .div(ONE_DAY_IN_SECONDS)
-    //                 .shiftedBy(18)
-    //                 .integerValue(BigNumber.ROUND_DOWN)
-    //                 .toFixed()
-    //         )
-    //     ],
-    //     proposalData
-    // )
+    await addProposalToPropData(dexRewarder, 'addRewardInfo',
+        [
+            config.dexPoolID,
+            dexCalcs.newDEXEndTimestamp,
+            EthersBigNumber.from(
+                dexRewarderSendParam
+                    .div(mipConfig.config.daysPerRewardCycle)
+                    .div(ONE_DAY_IN_SECONDS)
+                    .shiftedBy(18)
+                    .integerValue(BigNumber.ROUND_DOWN)
+                    .toFixed()
+            )
+        ],
+        proposalData
+    )
 
     //
     // Safety Module
@@ -539,10 +521,9 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
     // Only update if necessary
     const currentSMEmissions = new BigNumber(mipConfig.safetyModuleInfo.emissions.emissionsPerSecond)
     if (currentSMEmissions.isEqualTo(smCalcs.newSMEmissionsPerSecond)) {
-        // console.log(`⏭️ Skipping adjusting the SAFETY_MODULE`)
+        /// no-op
     } else {
         // Configure new reward speeds for stkWELL
-        // console.log(`📝 Calling configureAsset on SAFETY_MODULE`)
         await addProposalToPropData(stkWELL, 'configureAsset',
             [
                 EthersBigNumber.from(
@@ -563,7 +544,6 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
         const marketCalcs = marketData.marketCalcs
 
         // Gov Token emissions for this market
-        // console.log(`📝 Adjusting ${config.govTokenName} emissions for the ${marketTicker} market`)
 
         // If we have a 0 for borrow side, make sure it's 1
         let borrowGovTokensPerSecond = marketCalcs.proposedBorrowGovTokensPerSecond
@@ -591,7 +571,6 @@ async function generateProposalJSON(mipConfig: MipConfig, smCalcs: any, dexCalcs
         )
 
         // Native Token emissions for this market
-        // console.log(`📝 Adjusting ${config.nativeTokenName} emissions for the ${marketTicker} market`)
 
         // If we have a 0 for borrow side, make sure it's 1
         let borrowNativeTokensPerSecond = marketCalcs.proposedBorrowNativeTokensPerSecond
@@ -678,8 +657,6 @@ export async function printPropsalSummary(
     const marketTopperMarkdown = template(loadTemplate('market-topper.md.ejs', 'cli'))
     const marketMarkdown = template(loadTemplate('market.md.ejs', 'cli'))
 
-    // console.log(JSON.stringify({smCalcs}, null, 2))
-
     const contracts = defaultConfig[mipConfig.config.networkName as NETWORK].contracts
 
     console.log(`${chalk.bold.greenBright('===== Proposal Info =====')}`)
@@ -717,8 +694,6 @@ export default async function generateProposal(mipPath: string, options: OptionV
     if (fs.existsSync(mipPathNormalized)) {
         const rawConfigData = fs.readFileSync(mipPathNormalized, { encoding: 'utf8', flag: 'r' })
         const mipConfig: MipConfig = JSON.parse(rawConfigData)
-
-        // console.log(rawConfigData)
 
         await doSanityChecks(mipConfig, options)
 

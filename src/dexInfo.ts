@@ -13,13 +13,12 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
     const uniPairABI = path.resolve('./src/abi/UniPair.json')
     const pairContract = new ethers.Contract(config.govTokenUniPoolAddress, require(uniPairABI), provider);
     let nativeAssetTotal, govTokenTotal
+
     // Stellaswap and Solarbeam have different configs and put the "core" asset in different orders :(
     if (network === NETWORK.MOONBEAM) {
         let [WELLReserve, GLMRReserve, _blockTimestampLast] = await pairContract.getReserves()
         nativeAssetTotal = new BigNumber(GLMRReserve.toString()).div(1e18)
         govTokenTotal = new BigNumber(WELLReserve.toString()).div(1e18)
-
-        // console.log({WELLPrice: govTokenPrice.toFixed()})
     } else {
         let [MOVRReserve, MFAMReserve, _blockTimestampLast] = await pairContract.getReserves()
         nativeAssetTotal = new BigNumber(MOVRReserve.toString()).div(1e18)
@@ -30,8 +29,9 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
     let currentPoolRewardInfo, nextFreeSlot, currentConfig
 
     if (network === NETWORK.MOONBEAM) {
-        // Start enumerating from slot 10
-        nextFreeSlot = 10
+        // Start enumerating from slot -1 as config has been reset due to new contract deployment
+        /// so only valid slot is slot 0
+        nextFreeSlot = -1
     } else if (network === NETWORK.MOONRIVER) {
         // Start enumerating from slot 25
         nextFreeSlot = 25
@@ -51,18 +51,8 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
         }
     }
 
-    let addingNewMarket = false;
-
-    if (!currentConfig) {
-        addingNewMarket = true;
-        /// used to bootstrap a new market without a configuration.
-        /// be sure to update the start and end timestamps to the correct values if you use this.
-        console.log("no current configuration found, using hardcoded defaults");
-        currentConfig = {
-            startTimestamp: new BigNumber(1713497400),
-            endTimestamp: new BigNumber(1715916600),
-            rewardPerSec: 0
-        };
+    if (!currentConfig){
+        throw new Error("The current config could not be resolved!")
     }
 
     currentPoolRewardInfo = {
@@ -93,7 +83,6 @@ export async function fetchDexInfo(config: NetworkSpecificConfig, provider: ethe
     console.log(`    Current Pool Config Emissions: ${chalk.yellowBright(currentPoolRewardInfo.rewardPerSec)} ${config.govTokenName}/sec`)
 
     return {
-        addingNewMarket,
         govTokenTotal,
         nativeAssetTotal,
         govTokenPrice,
