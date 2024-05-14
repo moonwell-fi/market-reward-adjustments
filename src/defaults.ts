@@ -74,9 +74,9 @@ const defaultConfig: DefaultConfig = {
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
         defaultSplits: {
-            [COMPONENT.ALL_MARKETS]: 0.50,
-            [COMPONENT.SAFETY_MODULE]: 0.50,
-            [COMPONENT.DEX_REWARDER]: 0.00,
+            [COMPONENT.ALL_MARKETS]: 0.48,
+            [COMPONENT.SAFETY_MODULE]: 0.47,
+            [COMPONENT.DEX_REWARDER]: 0.05,
         },
 
         // The default grant sizes, denominated in underlying tokens as whole numbers (no mantissa)
