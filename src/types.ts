@@ -89,7 +89,6 @@ export type DexPoolRewardInfo = {
 }
 
 export type DexInfo = {
-    addingNewMarket: boolean
     govTokenTotal: string
     nativeAssetTotal: string
     govTokenPrice: string
