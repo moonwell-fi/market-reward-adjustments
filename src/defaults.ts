@@ -42,7 +42,7 @@ const defaultConfig: DefaultConfig = {
             [REWARD_TYPE.GOV_TOKEN]: new BigNumber(7_367_305)
                                             .integerValue(BigNumber.ROUND_DOWN)
                                             .toNumber(), // MFAM
-            [REWARD_TYPE.NATIVE_TOKEN]: 0, // MOVR grant exhausted
+            [REWARD_TYPE.NATIVE_TOKEN]: 1_488, // MOVR grant of 1,488 per period
         },
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
@@ -88,7 +88,7 @@ const defaultConfig: DefaultConfig = {
                                         .times(28)
                                         .integerValue(BigNumber.ROUND_DOWN)
                                         .toNumber(),
-            [REWARD_TYPE.NATIVE_TOKEN]: 0, // Grants are completely spent
+            [REWARD_TYPE.NATIVE_TOKEN]: 187_500, // 1,125,000 GLMR / 6 months (extra 2 weeks from Dec. 1 to Dec. 14th to fund out of treasury)
         },
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
