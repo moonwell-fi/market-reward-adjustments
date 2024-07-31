@@ -42,7 +42,7 @@ const defaultConfig: DefaultConfig = {
             [REWARD_TYPE.GOV_TOKEN]: new BigNumber(7_367_305)
                                             .integerValue(BigNumber.ROUND_DOWN)
                                             .toNumber(), // MFAM
-            [REWARD_TYPE.NATIVE_TOKEN]: 1_488, // MOVR grant of 1,488 per period
+            [REWARD_TYPE.NATIVE_TOKEN]: 0, // MOVR grant fully distributed
         },
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
