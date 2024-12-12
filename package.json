@@ -1,6 +1,6 @@
 {
   "name": "@moonwell-fi/market-reward-adjuster",
-  "version": "1.0.42",
+  "version": "1.0.43",
   "description": "",
   "main": "dist/cmd/generate-config.js",
   "types": "dist/src/index.d.ts",

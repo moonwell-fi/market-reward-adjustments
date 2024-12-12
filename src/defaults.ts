@@ -42,7 +42,7 @@ const defaultConfig: DefaultConfig = {
             [REWARD_TYPE.GOV_TOKEN]: new BigNumber(7_367_305)
                                             .integerValue(BigNumber.ROUND_DOWN)
                                             .toNumber(), // MFAM
-            [REWARD_TYPE.NATIVE_TOKEN]: 0, // MOVR grant fully distributed
+            [REWARD_TYPE.NATIVE_TOKEN]: 1_116, // 4,464 total / 4 reward cycles / Beginning 9-5-2024 ending 12-26-2024
         },
 
         // The default percentage splits, should be in decimal (ex 30% would be 0.3)
