@@ -1,0 +1,141 @@
+{
+  "_meta": {
+    "generatedAt": "2024-09-27T13:53:06.156Z",
+    "generatorVersion": "1.0.43"
+  },
+  "snapshotBlock": 8368001,
+  "safetyModuleInfo": {
+    "totalStaked": "355420229.263106512170466173",
+    "stakedTVL": "441862.1432483789454859798261662075657949335313636428",
+    "govTokenPrice": "0.0012432104502450314386245436",
+    "emissions": {
+      "emissionsPerSecond": "1.004964719742063492",
+      "lastUpdateTimestamp": 1727435808,
+      "emissionAPR": "8.923035896264377886",
+      "emissionsPerYear": "31714274.6397321428551392"
+    }
+  },
+  "dexInfo": {
+    "govTokenTotal": "57234094.860806991760944885",
+    "nativeAssetTotal": "6460.928551250871696109",
+    "govTokenPrice": "0.0012432104502450314386245436",
+    "nextFreeSlot": 46,
+    "emissionsPerYear": "35558457.1874999999719488",
+    "poolTVL": "142308.049682541402082176341766256624949845487879486",
+    "currentPoolAPR": "31.064051308907718855",
+    "currentPoolRewardInfo": {
+      "startTimestamp": 1725593400,
+      "endTimestamp": 1728012600,
+      "rewardPerSec": "1.126779513888888888"
+    }
+  },
+  "marketData": {
+    "assets": {
+      "MOVR": {
+        "price": "11.01297194",
+        "totalSuppliedUnderlying": "118614.140085308850664843999639321978950912",
+        "totalSuppliedTVL": "1306294.19644673557860557731250522307481166449340928",
+        "totalBorrows": "3029.906407323148310631",
+        "totalBorrowedTVL": "33368.27424467604285743760669414",
+        "utilization": "0.0255442260521721925",
+        "baseSupplyAPR": "12547387",
+        "baseBorrowAPR": "755696153",
+        "govSupplySpeed": "593842788938492063",
+        "govBorrowSpeed": "1",
+        "nativeSupplySpeed": "299851190476190",
+        "nativeBorrowSpeed": "1",
+        "nativeSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        },
+        "govSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        }
+      },
+      "xcKSM": {
+        "price": "22.28679",
+        "totalSuppliedUnderlying": "23376.83422921136699995152407518666",
+        "totalSuppliedTVL": "520994.5953312456019408496272436293022214",
+        "totalBorrows": "5709.871530350666",
+        "totalBorrowedTVL": "127254.70772390391950214",
+        "utilization": "0.24425341234681340773",
+        "baseSupplyAPR": "223654768",
+        "baseBorrowAPR": "1408718328",
+        "govSupplySpeed": "255809201388888888",
+        "govBorrowSpeed": "1",
+        "nativeSupplySpeed": "129166666666666",
+        "nativeBorrowSpeed": "1",
+        "nativeSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        },
+        "govSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        }
+      },
+      "FRAX": {
+        "price": "0.99747907",
+        "totalSuppliedUnderlying": "105660.238720601702629035999686739043241255",
+        "totalSuppliedTVL": "105393.87665500377617882738396404875218497682303285",
+        "totalBorrows": "87420.227740121120721769",
+        "totalBorrowedTVL": "87199.84746540421718490787087483",
+        "utilization": "0.82737109814115787526",
+        "baseSupplyAPR": "2179385310",
+        "baseBorrowAPR": "4052474742",
+        "govSupplySpeed": "63952300347222222",
+        "govBorrowSpeed": "1",
+        "nativeSupplySpeed": "32291666666666",
+        "nativeBorrowSpeed": "1",
+        "nativeSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        },
+        "govSupplyBorrowSplit": {
+          "SUPPLY": 1,
+          "BORROW": 0
+        }
+      }
+    },
+    "totalTVL": "1932682.66843298495672525432371290112921804131644213",
+    "govRewardSplits": {
+      "MOVR": 0.67,
+      "xcKSM": 0.27,
+      "FRAX": 0.06
+    },
+    "nativeRewardSplits": {
+      "MOVR": 0.67,
+      "xcKSM": 0.27,
+      "FRAX": 0.06
+    }
+  },
+  "config": {
+    "daysPerRewardCycle": 28,
+    "rpc": "https://rpc.api.moonriver.moonbeam.network",
+    "govTokenName": "MFAM",
+    "nativeTokenName": "MOVR",
+    "networkName": "Moonriver",
+    "dexName": "SolarBeam",
+    "govTokenUniPoolAddress": "0xE6Bfc609A2e58530310D6964ccdd236fc93b4ADB",
+    "ecosystemReserve": "0xbA17581Bb6d89954B42fB84294e476e97588908B",
+    "treasuryAddress": "0x5d6C4DCb86b8A761C062a5274a77AaD5F7209AA3",
+    "dexPoolID": 11,
+    "submissionRewardAmount": 150000
+  },
+  "responses": {
+    "name": "Coolhorsegirl",
+    "network": "Moonriver",
+    "mipNumber": "R25",
+    "componentSplits": {
+      "ALL_MARKETS": 0.3,
+      "SAFETY_MODULE": 0.33,
+      "DEX_REWARDER": 0.37
+    },
+    "emissionAmounts": {
+      "0": 7367305,
+      "1": 1116
+    },
+    "submitterWallet": "0x7F953f11343408eBCcaEcd04eB0D1E6bacDEf87F"
+  }
+}
